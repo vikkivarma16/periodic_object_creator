@@ -1,4 +1,4 @@
-# Taylor Expansion
+# Periodic object creator
 
 A Python package to create 3D and 2D objects with periodic properties....
 
