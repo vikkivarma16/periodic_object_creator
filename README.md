@@ -7,4 +7,4 @@ A Python package to create 3D and 2D objects with periodic properties....
 ```bash
 pip install git+https://github.com/vikkivarma16/periodic_object_creator.git
 
-# taylorexpansion
+# periodic_object_creator
