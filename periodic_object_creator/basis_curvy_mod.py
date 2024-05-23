@@ -27,8 +27,7 @@ def curvy_linear_basis(basis, species, bond_length, angular_length_str):
             
         bond_indi=[]
         
-        print("basis bonds", basis_bonds)
-    
+
         for i in range(len(basis_bonds)):
             for j in range(len(basis_bonds[i])):
                 if(basis_bonds[i][j]>i):
@@ -50,7 +49,6 @@ def curvy_linear_basis(basis, species, bond_length, angular_length_str):
         curvature_radius=half_bond/sin(angle)
         
         
-        print("calculated radius", curvature_radius)
         basis_coordinate=[]
         
         linear_length=curvature_radius*angular_length
@@ -69,7 +67,7 @@ def curvy_linear_basis(basis, species, bond_length, angular_length_str):
         parameter=fabs(total_angular_length-angular_length)
         
         
-        print(parameter )
+        
         if  (parameter>EPSILON):
             universal_bond_length=2.0*curvature_radius*sin((angular_length/len(basis))*0.5)
             for i in range(len(bond_length)):

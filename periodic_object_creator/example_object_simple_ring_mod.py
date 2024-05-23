@@ -10,7 +10,7 @@ def example_object_simple_ring(n_beads, r_curvature):
         piee = acos(-1.0)
 
         
-        import species_finder as sf
+        from . import species_finder_mod as sf
         # Decide the basis.. For example ring has curvy geometry... with angular length 360 degree...
         basis=["A"]
         ju=[]
@@ -24,7 +24,7 @@ def example_object_simple_ring(n_beads, r_curvature):
                 i = 0
         species=sf.species_finder(basis)
         
-        import bond_combinator as bc
+        from . import bond_combinator_mod as bc
         
         bond_length=bc.bond_combinator(species)
         
@@ -45,10 +45,9 @@ def example_object_simple_ring(n_beads, r_curvature):
         for i in range(len(bond_length)):
             bond_length[i][2]=bond_l
             
-            
-        print(bond_length)
+        
 
-        import basis_curvy as clb
+        from . import basis_curvy_mod as clb
         
         basis_angular_posi, basis_coordinate, bond_length, basis_bonds=clb.curvy_linear_basis(basis, species, bond_length, angular_length_str)
         

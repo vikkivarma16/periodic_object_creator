@@ -54,7 +54,7 @@ def chain_validator(rings_size, contact_bond_length, isometric_dif_factor):
         angular_length=angular_width[2]
         r_maximum=0.5*max_curvature/sin(0.5*angular_length)
         
-        print("this is being fired")
+        
         
     print("\n\n...the returned R_minimum is given as...", r_minimum, "\n\n")
     

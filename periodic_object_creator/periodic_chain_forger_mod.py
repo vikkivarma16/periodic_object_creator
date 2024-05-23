@@ -5,9 +5,9 @@
 def periodic_ring_chain_forge(chain_radius, rings_coordinate, rings_size, chain_configuration_mode, specific_factor):
     
     
-    import so_translator as tl
+    from . import so_translator_mod as tl
     
-    import so_rotator as rt
+    from . import so_rotator_mod as rt
     from math import sin, cos, fabs, acos, atan, tan, sqrt
     piee=acos(-1.0)
     tpiee=piee*2.0

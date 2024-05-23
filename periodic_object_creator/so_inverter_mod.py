@@ -6,7 +6,7 @@ def inversion(input_object, inversion_point):
     
     from math import sin, cos, fabs, acos, atan, tan, sqrt
 
-    import so_translator as tl
+    from . import so_translator_mod as tl
     
     piee = acos(-1.0)
     tpiee=2.0*piee

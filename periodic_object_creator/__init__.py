@@ -1,20 +1,19 @@
 # periodic_object_creator/__init__.py
 
-from .example_object_simple_ring import *
-from .basis_curvy import *
-from .basis_linear import*
-from .basis_non_linear import*
-from .bond_combinator import*
-from .chain_validity_checker import*
-from .elements_picker import*
-from .example_object_simple_ring import*
-from .jason_file_creator import*
-from .periodic_chain_forger import*
-from .so_cylindrical_wrapper import*
-from .so_inverter import*
-from .so_reflector import*
-from .so_replicator import*
-from .so_translator import*
-from .species_finder import*
-from .vtk_contour import*
-from .vtk_particle import*
+from .basis_curvy_mod import *
+from .basis_linear_mod import*
+from .basis_non_linear_mod import*
+from .bond_combinator_mod import*
+from .chain_validity_checker_mod import*
+from .elements_picker_mod import*
+from .example_object_simple_ring_mod import*
+from .jason_file_creator_mod import*
+from .periodic_chain_forger_mod import*
+from .so_cylindrical_wrapper_mod import*
+from .so_inverter_mod import*
+from .so_reflector_mod import*
+from .so_replicator_mod import*
+from .so_translator_mod import*
+from .species_finder_mod import*
+from .vtk_contour_mod import*
+from .vtk_particle_mod import*

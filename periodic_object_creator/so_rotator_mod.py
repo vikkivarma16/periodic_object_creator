@@ -6,7 +6,7 @@ def rotator(input_object, ro_axis_orien, ro_axis_posi, ro_degree):
 
     from math import sin, cos, fabs, acos, atan, tan, sqrt
     
-    import so_translator as st
+    from. import so_translator_mod as st
     
     
    

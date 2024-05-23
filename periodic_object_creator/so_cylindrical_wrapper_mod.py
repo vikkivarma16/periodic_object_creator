@@ -18,7 +18,7 @@ def wrap(input_object, cylinder_radius, object_size):
         object_return=[]
         
     else:
-        import so_translator as tl
+        from . import so_translator_mod as tl
     
         tvector=[cylinder_radius, 0.0, 0.0]
         objct_return =tl.translator(input_object, tvector)
