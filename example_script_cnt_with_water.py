@@ -173,18 +173,16 @@ cnt  =  wrapper_cylindrical(basis_object_5, cylinder_radius, object_size)
 
 
 
-# creating water box with simple cubic lattic for the given density
+
 basis = [[0.0000000, 0.000000,  0.00000, "O", 1], [0.8164904, 0.5773590, 0.00000, "H", 1], [-0.8164904, 0.5773590, 0.00000, "H", 1]]
 tvector  = [0.8164904, 0.0, 0.0]
 basis = translator (basis, tvector)
-print (basis)
 box_size =  [30.0, 30.0, 30.0]
 
 rho  =  0.05
 
 N = rho * box_size[0] * box_size[1] * box_size[2]
 
-print (N)
 N_x  = int ( (N**(1.0/3.0)) * box_size[0]/ (box_size[0] * box_size[1] * box_size[2])**(1.0/3.0))
 N_y  = int ( (N**(1.0/3.0)) * box_size[1]/ (box_size[0] * box_size[1] * box_size[2])**(1.0/3.0))
 N_z  = int ( (N**(1.0/3.0)) * box_size[2]/ (box_size[0] * box_size[1] * box_size[2])**(1.0/3.0))
@@ -233,7 +231,6 @@ cnt_new  =  translator(cnt, tvector)
 
 new_tvector  =  [box_size[0]/2.0, box_size[1]/2.0, box_size[2]/2.0]
 
-# transfering cnt to the center of water box
 dispersed_cnt =  translator(cnt_new, new_tvector)
 
 # giving unique id to each basis in the object
@@ -246,7 +243,7 @@ water_lattic =  new_obj
 
 
 
-# merging cnt with water 
+# merging cnt with water and deleting water molecules which are overlapping with the cnt
 
 remaining_object = overlap_eleminator(
         dispersed_cnt, water_lattic,
@@ -256,8 +253,9 @@ remaining_object = overlap_eleminator(
 
 remaining_water_lattic  =  remaining_object[1]
 
-# deleting water molecules which are broken due to the overlapping with the cnt
+
 group_id_indices = 5
+
 filtered = filter_broken_group(remaining_water_lattic, group_size, group_id_indices )
 remaining_water_lattic= filtered
 

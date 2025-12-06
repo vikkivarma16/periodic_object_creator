@@ -6,6 +6,7 @@ from math import sin, cos, tan, asin, acos, atan
  
 
 from periodic_object_creator.so_cm_calculator_mod import cm_calculator
+from periodic_object_creator.export_coordinate_particle_mod import export_xyz
 from periodic_object_creator.so_elements_picker_mod import elements_picker
 from periodic_object_creator.so_inverter_mod import inverter
 from periodic_object_creator.so_overlap_eleminator_mod import overlap_eleminator
@@ -17,7 +18,6 @@ from periodic_object_creator.so_translator_mod import translator
 from periodic_object_creator.so_wrapper_cylindrical_mod import wrapper_cylindrical
 from periodic_object_creator.so_wrapper_spherical_mod import wrapper_spherical
 from periodic_object_creator.vtk_particle_mod import particle_vis
-from periodic_object_creator.coordinate_particle_mod import export_xyz
 
 
 #def export_xyz (cnt, "cord_cnt"):
