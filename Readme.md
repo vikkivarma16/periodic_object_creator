@@ -41,6 +41,29 @@ All functions operate on the coordinates but keep the other attributes unchanged
 
 ## Functions and Their Functionalities
 
+assign_group_ids(input_object, group_size=3, start_id=1, id_index=None)
+
+Assigns a group ID to every consecutive block of `group_size` atoms.
+
+**Parameters**
+- `input_object` – list of atom records: `[[x, y, z, attr1, attr2, ...], ...]`
+- `group_size` – number of atoms per group (e.g., 3 for H₂O)
+- `start_id` – ID assigned to the first group
+- `id_index` – where to place the ID:
+  - `None` → append ID as the last element  
+  - integer (e.g., 4) → overwrite/update ID at that index
+
+**Behavior**
+Atoms are processed in order. Every `group_size` atoms receive the same ID.  
+IDs automatically increment for each new group.  
+If `id_index` is given, the function updates the ID at that index;  
+if not, the ID is appended.
+
+**Output**
+Returns a new object with group IDs added or updated for each atom.
+
+
+
 export_xyz(input_object, filename)
 Writes the atomic coordinates to an .xyz file and all additional attributes to a .txt file using the given filename.
 input_object – list of elements, each in the form -[[x, y, z, attr1, attr2, ...],...], which is your input object
@@ -49,6 +72,26 @@ filename – base filename (without extension)
 Output:
 filename.xyz containing only coordinates
 filename.txt containing element attributes
+
+
+
+filter_broken_group(input_object, group_size=3, group_id_index=3)
+
+Removes all atoms belonging to incomplete groups (broken molecules).
+
+**Parameters**
+- `input_object` – list of atom records: `[[x, y, z, attr1, attr2, ...], ...]`
+- `group_size` – expected number of atoms per complete group
+- `group_id_index` – index where the group ID is stored in each atom record
+
+**Behavior**
+Counts how many atoms share each group ID.  
+Any ID that does not appear exactly `group_size` times is considered broken.  
+All atoms belonging to broken groups are removed.
+
+**Output**
+Returns a filtered object containing only atoms from complete, intact groups.
+
 
 
 elements_picker(input_object, indices)
