@@ -33,7 +33,7 @@ def assign_group_ids(obj, group_size=3, start_id=1, id_index_in_element=None):
 
         atom_list = list(atom)
 
-        if id_index is None:
+        if id_index_in_element is None:
             # append new ID
             atom_list.append(current_id)
         else:
