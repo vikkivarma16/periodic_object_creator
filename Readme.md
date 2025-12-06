@@ -167,6 +167,9 @@ object_size: approximate length of the object along the polar angle.
 You can import and call these functions as follows:
 
 ```python
+from periodic_object_creator.assign_mol_id_mod import assign_group_ids
+from periodic_object_creator.export_coordinate_particle_mod import export_xyz
+from periodic_object_creator.filter_broken_mol_mod import filter_broken_group
 from periodic_object_creator.so_cm_calculator_mod import cm_calculator
 from periodic_object_creator.so_elements_picker_mod import elements_picker
 from periodic_object_creator.so_inverter_mod import inverter
@@ -179,7 +182,6 @@ from periodic_object_creator.so_translator_mod import translator
 from periodic_object_creator.so_wrapper_cylindrical_mod import wrapper_cylindrical
 from periodic_object_creator.so_wrapper_spherical_mod import wrapper_spherical
 from periodic_object_creator.vtk_particle_mod import particle_vis
-from periodic_object_creator.coordinate_particle_mod import export_xyz
 ```
 
 Example:
