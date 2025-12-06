@@ -16,7 +16,7 @@ def particle_vis(input_data_ps, filename):
         for j in range(len(input_data_ps)):
             if (input_data_ps[j][3]==basis[i]):
                 count=count+1
-        filename=filename+"particle_type_"+basis[i]+".vtk"
+        filename=filename+"_particle_type_"+basis[i]+".vtk"
         fu=open(filename, "w")
         fu.write("# vtk DataFile Version 3.0\n")
         fu.write("Random data to test tensors\n")
