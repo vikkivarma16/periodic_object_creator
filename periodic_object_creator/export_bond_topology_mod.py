@@ -26,9 +26,17 @@ Output (dictionary):
 }
 """
 
+"""
+Enhanced topology_builder.py
+Now also exports:
+- number of bonds, angles, dihedrals, impropers
+- coordinates of each atom involved in every topology interaction
+"""
+
 from math import sqrt
 from itertools import combinations, product
 from collections import defaultdict
+
 
 def _distance(p1, p2):
     dx = p1[0] - p2[0]
@@ -36,44 +44,35 @@ def _distance(p1, p2):
     dz = p1[2] - p2[2]
     return sqrt(dx*dx + dy*dy + dz*dz)
 
+
 def _canonical_bond(a, b):
-    # canonical representation of bond: sorted tuple
     return tuple(sorted((a, b)))
 
+
 def _canonical_angle(a, b, c):
-    # angle a-b-c and c-b-a are the same; store canonical with lexicographic min between (a,b,c) and (c,b,a)
     t1 = (a, b, c)
     t2 = (c, b, a)
     return min(t1, t2)
 
+
 def _canonical_dihedral(a, b, c, d):
-    # dihedral a-b-c-d equivalent to reverse d-c-b-a; choose lexicographically smaller of the two
     t1 = (a, b, c, d)
     t2 = (d, c, b, a)
     return min(t1, t2)
 
+
 def _canonical_improper(center, n1, n2, n3):
-    # central atom first, neighbors as a sorted tuple to canonicalize order
     neigh_sorted = tuple(sorted((n1, n2, n3)))
     return (center,) + neigh_sorted
 
-def find_bonds(input_object, bond_length, tolerance, id_index=None, coord_indices=(0,1,2)):
-    """
-    find_bonds(...)
-    Finds bonded neighbors according to bond_length +/- tolerance.
 
-    Returns:
-      bonds_set: set of canonical bond tuples (id1, id2)
-      neighbors: dict mapping id -> list of neighbor ids (unsorted)
-      id_to_pos: dict mapping id -> (x,y,z)
-    """
-    # determine id_index if None -> assume last element
+def find_bonds(input_object, bond_length, tolerance, id_index=None, coord_indices=(0,1,2)):
     if id_index is None:
         id_index = len(input_object[0]) - 1
 
-    # build id -> position mapping and list to iterate
     id_list = []
     id_to_pos = {}
+
     for atom in input_object:
         atom_list = list(atom)
         aid = atom_list[id_index]
@@ -86,53 +85,37 @@ def find_bonds(input_object, bond_length, tolerance, id_index=None, coord_indice
     bonds_set = set()
     neighbors = defaultdict(list)
 
-    ids = id_list
-    n = len(ids)
+    n = len(id_list)
     for i in range(n):
-        id_i = ids[i]
+        id_i = id_list[i]
         pos_i = id_to_pos[id_i]
         for j in range(i+1, n):
-            id_j = ids[j]
+            id_j = id_list[j]
             pos_j = id_to_pos[id_j]
             d = _distance(pos_i, pos_j)
             if abs(d - bond_length) <= tolerance:
                 b = _canonical_bond(id_i, id_j)
                 if b not in bonds_set:
                     bonds_set.add(b)
-                    # add directed neighbors for subsequent angle/dihedral generation
                     neighbors[b[0]].append(b[1])
                     neighbors[b[1]].append(b[0])
 
     return bonds_set, neighbors, id_to_pos
 
+
 def build_angles(bonds_set, neighbors):
-    """
-    build_angles(...)
-    From neighbor lists, build unique angles A-B-C (center = B).
-    Returns list of canonical triplets [A,B,C].
-    """
     angle_set = set()
     for center, neighs in neighbors.items():
         if len(neighs) < 2:
             continue
-        # all unordered pairs of neighbors produce an angle at 'center'
         for a, c in combinations(neighs, 2):
-            canon = _canonical_angle(a, center, c)
-            angle_set.add(canon)
-    # return as list of lists
+            angle_set.add(_canonical_angle(a, center, c))
     return [list(x) for x in sorted(angle_set)]
 
+
 def build_dihedrals(bonds_set, neighbors):
-    """
-    build_dihedrals(...)
-    For each bond B-C, consider neighbors A of B (A != C) and D of C (D != B).
-    All combinations A-B-C-D form dihedrals (canonicalized).
-    Returns list of canonical dihedral quartets.
-    """
     dihedral_set = set()
     for b, c in bonds_set:
-        # note bonds_set uses sorted order; need to consider both directions when picking neighbors
-        # We'll treat bond endpoints as (B,C) in both orders to find all combos
         for (B, C) in ((b, c), (c, b)):
             neigh_B = [x for x in neighbors.get(B, []) if x != C]
             neigh_C = [x for x in neighbors.get(C, []) if x != B]
@@ -140,106 +123,95 @@ def build_dihedrals(bonds_set, neighbors):
                 continue
             for A in neigh_B:
                 for D in neigh_C:
-                    canon = _canonical_dihedral(A, B, C, D)
-                    dihedral_set.add(canon)
+                    dihedral_set.add(_canonical_dihedral(A, B, C, D))
     return [list(x) for x in sorted(dihedral_set)]
 
+
 def build_impropers(neighbors):
-    """
-    build_impropers(...)
-    For each central atom with 3+ neighbors, build improper tuples:
-    (central, n1, n2, n3) for each combination of 3 neighbors. Canonicalized so neighbors sorted.
-    """
     improper_set = set()
     for central, neighs in neighbors.items():
         if len(neighs) < 3:
             continue
         for trio in combinations(neighs, 3):
-            canon = _canonical_improper(central, *trio)
-            improper_set.add(canon)
+            improper_set.add(_canonical_improper(central, *trio))
     return [list(x) for x in sorted(improper_set)]
 
-def export_topology_text(filename_base, bonds, angles, dihedrals, impropers):
-    """
-    export_topology_text(filename_base, bonds, angles, dihedrals, impropers)
-    Writes topology lists to <filename_base>.txt in a readable format.
 
-    Each section header is printed, then each interaction on its own line as space-separated ids.
-    """
+def export_topology_text(filename_base, bonds, angles, dihedrals, impropers, id_to_pos):
     fname = f"{filename_base}.txt"
     with open(fname, "w") as fh:
-        fh.write("BONDS (id1 id2)\n")
+
+        # ===== SUMMARY =====
+        fh.write("SUMMARY COUNTS\n")
+        fh.write(f"TOTAL_BONDS: {len(bonds)}\n")
+        fh.write(f"TOTAL_ANGLES: {len(angles)}\n")
+        fh.write(f"TOTAL_DIHEDRALS: {len(dihedrals)}\n")
+        fh.write(f"TOTAL_IMPROPERS: {len(impropers)}\n\n")
+
+        # ===== BONDS =====
+        fh.write("BONDS (id1 id2 | coords1 | coords2)\n")
         for b in bonds:
-            fh.write(f"{b[0]} {b[1]}\n")
+            a1, a2 = b
+            x1, y1, z1 = id_to_pos[a1]
+            x2, y2, z2 = id_to_pos[a2]
+            fh.write(f"{a1} {a2} | {x1:.6f} {y1:.6f} {z1:.6f} | {x2:.6f} {y2:.6f} {z2:.6f}\n")
 
-        fh.write("\nANGLES (idA idB idC)\n")
-        for a in angles:
-            fh.write(f"{a[0]} {a[1]} {a[2]}\n")
+        # ===== ANGLES =====
+        fh.write("\nANGLES (A B C | coordsA | coordsB | coordsC)\n")
+        for A, B, C in angles:
+            fh.write(
+                f"{A} {B} {C} | "
+                f"{id_to_pos[A][0]:.6f} {id_to_pos[A][1]:.6f} {id_to_pos[A][2]:.6f} | "
+                f"{id_to_pos[B][0]:.6f} {id_to_pos[B][1]:.6f} {id_to_pos[B][2]:.6f} | "
+                f"{id_to_pos[C][0]:.6f} {id_to_pos[C][1]:.6f} {id_to_pos[C][2]:.6f}\n"
+            )
 
-        fh.write("\nDIHEDRALS (idA idB idC idD)\n")
-        for d in dihedrals:
-            fh.write(f"{d[0]} {d[1]} {d[2]} {d[3]}\n")
+        # ===== DIHEDRALS =====
+        fh.write("\nDIHEDRALS (A B C D | coordsA | coordsB | coordsC | coordsD)\n")
+        for A, B, C, D in dihedrals:
+            fh.write(
+                f"{A} {B} {C} {D} | "
+                f"{id_to_pos[A][0]:.6f} {id_to_pos[A][1]:.6f} {id_to_pos[A][2]:.6f} | "
+                f"{id_to_pos[B][0]:.6f} {id_to_pos[B][1]:.6f} {id_to_pos[B][2]:.6f} | "
+                f"{id_to_pos[C][0]:.6f} {id_to_pos[C][1]:.6f} {id_to_pos[C][2]:.6f} | "
+                f"{id_to_pos[D][0]:.6f} {id_to_pos[D][1]:.6f} {id_to_pos[D][2]:.6f}\n"
+            )
 
-        fh.write("\nIMPROPERS (center n1 n2 n3)\n")
-        for imp in impropers:
-            fh.write(f"{imp[0]} {imp[1]} {imp[2]} {imp[3]}\n")
+        # ===== IMPROPERS =====
+        fh.write("\nIMPROPERS (center n1 n2 n3 | coords ...)\n")
+        for center, n1, n2, n3 in impropers:
+            fh.write(
+                f"{center} {n1} {n2} {n3} | "
+                f"{id_to_pos[center][0]:.6f} {id_to_pos[center][1]:.6f} {id_to_pos[center][2]:.6f} | "
+                f"{id_to_pos[n1][0]:.6f} {id_to_pos[n1][1]:.6f} {id_to_pos[n1][2]:.6f} | "
+                f"{id_to_pos[n2][0]:.6f} {id_to_pos[n2][1]:.6f} {id_to_pos[n2][2]:.6f} | "
+                f"{id_to_pos[n3][0]:.6f} {id_to_pos[n3][1]:.6f} {id_to_pos[n3][2]:.6f}\n"
+            )
 
     return fname
 
-def build_topology(input_object, bond_length, tolerance, id_index=None, coord_indices=(0,1,2), export_base="topology"):
-    """
-    build_topology(...)
-    High-level function that finds bonds, neighbors, angles, dihedrals and impropers.
-    Exports results to a text file (export_base + '.txt') and returns a dict with arrays.
 
-    Returns:
-      {
-        "bonds": [[id1,id2], ...],
-        "neighbors": {id: [neighs...]},
-        "angles": [[a,b,c], ...],
-        "dihedrals": [[a,b,c,d], ...],
-        "impropers": [[center,n1,n2,n3], ...],
-        "export_file": "<export_base>.txt"
-      }
-    """
+def build_topology(input_object, bond_length, tolerance, id_index=None, coord_indices=(0,1,2), export_base="topology"):
+
     bonds_set, neighbors, id_to_pos = find_bonds(
         input_object, bond_length, tolerance, id_index=id_index, coord_indices=coord_indices
     )
 
-    # convert bond set to sorted list of pairs for consistent output
     bonds = [list(b) for b in sorted(bonds_set)]
-
     angles = build_angles(bonds_set, neighbors)
     dihedrals = build_dihedrals(bonds_set, neighbors)
     impropers = build_impropers(neighbors)
 
-    export_file = export_topology_text(export_base, bonds, angles, dihedrals, impropers)
+    export_file = export_topology_text(
+        export_base, bonds, angles, dihedrals, impropers, id_to_pos
+    )
 
     return {
         "bonds": bonds,
-        "neighbors": dict((k, sorted(v)) for k, v in neighbors.items()),
+        "neighbors": {k: sorted(v) for k, v in neighbors.items()},
         "angles": angles,
         "dihedrals": dihedrals,
         "impropers": impropers,
         "export_file": export_file
     }
-
-# Example quick test (uncomment to run as script)
-if __name__ == "__main__":
-    # tiny example: two water molecules with ids at last index
-    atoms = [
-        [0.0, 0.0, 0.0, "O", 1],
-        [0.96, 0.0, 0.0, "H", 2],   # bonded to O (~0.96A)
-        [-0.24, 0.93, 0.0, "H", 3],
-        [3.0, 0.0, 0.0, "O", 4],
-        [3.96, 0.0, 0.0, "H", 5],
-        [2.76, 0.93, 0.0, "H", 6],
-    ]
-    # bond length approx 0.96, tolerance 0.2
-    topo = build_topology(atoms, bond_length=0.96, tolerance=0.2, id_index=4, export_base="example_topo")
-    print("Bonds:", topo["bonds"])
-    print("Angles:", topo["angles"])
-    print("Dihedrals:", topo["dihedrals"])
-    print("Impropers:", topo["impropers"])
-    print("Exported to:", topo["export_file"])
 
