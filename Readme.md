@@ -15,7 +15,7 @@ Install directly from GitHub using pip:
 
 ```bash
 pip install git+https://github.com/vikkivarma16/periodic_object_creator.git
-````
+```
 
 Ensure that you have Python 3.7+ and the necessary dependencies installed. Visualization requires Paraview or any VTK-compatible viewer.
 
@@ -143,16 +143,18 @@ Removes incomplete or broken groups.
 
 ---
 
-### `build_topology(input_object, bond_length=0.96, tolerance=0.2, id_index=4, export_base="example_topo")`
+### `build_topology(input_object, bond_length=0.96, tolerance=0.2, id_index=4, export_base="example_topo", many_body=False, id_body_index=None)`
 
-Automatically generates molecular topology:
+Automatically generates molecular topology with optional multi-body support:
 
-* Detects **bonds** with bond length ± tolerance
+* Detects **bonds** within same body (bond length ± tolerance)
+* For case of many body yes search the topology only within the body, where the body index within the element must be specified so that it can pick the element lying within the same body.
+* After searching the topology for all the body present and specified in the object it export the data in combined format where topological properties are mentioned with elements involved e.g, atom 1 2 3 making an angle belonging to body 1  so the angle will be mentioned with angle id atom 1 id atom 2 id atom 3 id body id and the coordinates of the atoms.
 * Builds **neighbor lists**
-* Generates **bond angles** (triplets)
-* Generates **dihedrals** (quartets)
-* Generates **improper dihedrals** (≥3 neighbors)
-* Exports full topology with coordinates to a file
+* Generates **bond angles** (triplets) within same body
+* Generates **dihedrals** (quartets) within same body
+* Generates **improper dihedrals** (≥3 neighbors) within same body
+* Exports full topology including **body IDs** and coordinates to a file
 * Returns data structures as Python arrays for further processing
 
 **Usage Example**:
@@ -161,18 +163,26 @@ Automatically generates molecular topology:
 from topology_builder import build_topology
 
 atoms = [
-    [0.0, 0.0, 0.0, "O", 1],
-    [0.96, 0.0, 0.0, "H", 2],
-    [-0.24, 0.93, 0.0, "H", 3],
+    [0.0, 0.0, 0.0, "O", 1, 1],   # last element can be atom id, optional body id
+    [0.96, 0.0, 0.0, "H", 2, 1],
+    [-0.24, 0.93, 0.0, "H", 3, 1],
 ]
 
-topology = build_topology(atoms, bond_length=0.96, tolerance=0.2, id_index=4, export_base="example_topo")
+topology = build_topology(
+    atoms,
+    bond_length=0.96,
+    tolerance=0.2,
+    id_index=4,
+    export_base="example_topo",
+    many_body=True,
+    id_body_index=5
+)
+
 print(topology["bonds"])
 print(topology["angles"])
 print(topology["dihedrals"])
 print(topology["impropers"])
 ```
-
 ---
 
 ### Other Utility Functions
@@ -193,7 +203,7 @@ Selects and returns a subset of elements from the input object based on provided
 ```python
 subset = elements_picker(input_object, [0, 2, 5])
 print(subset)
-````
+```
 
 ---
 
