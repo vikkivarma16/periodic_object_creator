@@ -94,6 +94,36 @@ Exports atomic coordinates and attributes:
 
 ---
 
+
+
+### `get_object_size(input_object, coord_indices=[0,1,2])`
+
+Calculates the **size and extension** of a 3D object along x, y, and z axes.
+
+**Input:**
+
+* `input_object` : List of elements with coordinates, e.g., `[[x, y, z, ...], ...]`
+
+**Output:**
+Dictionary with `min`, `max`, and `size` for each axis:
+
+```python
+{'x': {'min':..., 'max':..., 'size':...},
+ 'y': {'min':..., 'max':..., 'size':...},
+ 'z': {'min':..., 'max':..., 'size':...}}
+```
+
+**Example:**
+
+```python
+size_info = get_object_size(obj)
+print(size_info)
+# {'x': {'min':-1, 'max':1, 'size':2}, ...}
+```
+
+---
+
+
 ### `filter_broken_group(input_object, group_size=3, group_id_index=3)`
 
 Removes incomplete or broken groups.
@@ -394,6 +424,7 @@ Do you want me to do that next?
 from periodic_object_creator.assign_mol_id_mod import assign_group_ids
 from periodic_object_creator.export_coordinate_particle_mod import export_xyz
 from periodic_object_creator.export_bond_topology_mod import build_topology
+from periodic_object_creator.export_object_size import get_object_size
 from periodic_object_creator.filter_broken_mol_mod import filter_broken_group
 from periodic_object_creator.so_cm_calculator_mod import cm_calculator
 from periodic_object_creator.so_elements_picker_mod import elements_picker
