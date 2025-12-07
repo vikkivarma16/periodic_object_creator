@@ -107,29 +107,29 @@ def export_topology_text(filename_base, bonds, angles, dihedrals, impropers, pos
     fname = f"{filename_base}.txt"
     with open(fname, "w") as fh:
         fh.write("SUMMARY COUNTS")
-        fh.write(f"TOTAL_ATOMS: {len(positions)} ")
-        fh.write(f"TOTAL_BONDS: {len(bonds)} ")
-        fh.write(f"TOTAL_ANGLES: {len(angles)} ")
-        fh.write(f"TOTAL_DIHEDRALS: {len(dihedrals)} ")
-        fh.write(f"TOTAL_IMPROPERS: {len(impropers)} ")
+        fh.write(f"TOTAL_ATOMS: {len(positions)}  \n ")
+        fh.write(f"TOTAL_BONDS: {len(bonds)}  \n")
+        fh.write(f"TOTAL_ANGLES: {len(angles)}  \n ")
+        fh.write(f"TOTAL_DIHEDRALS: {len(dihedrals)} \n")
+        fh.write(f"TOTAL_IMPROPERS: {len(impropers)} \n")
 
-        fh.write("BONDS (id1 id2 body | coords1 | coords2) ")
+        fh.write("\n BONDS (id1 id2 body | coords1 | coords2) \n\n")
         for a1, a2 in bonds:
             x1, y1, z1 = positions[a1]
             x2, y2, z2 = positions[a2]
-            fh.write(f"{a1} {a2} {body[a1]}   {x1:.6f} {y1:.6f} {z1:.6f}   {x2:.6f} {y2:.6f} {z2:.6f} ")
+            fh.write(f"{a1} {a2} {body[a1]}   {x1:.6f} {y1:.6f} {z1:.6f}    {x2:.6f} {y2:.6f} {z2:.6f} \n ")
 
-        fh.write(" ANGLES (A B C body | coordsA | coordsB | coordsC) ")
+        fh.write("\n ANGLES (A B C body | coordsA | coordsB | coordsC) \n\n ")
         for A, B, C in angles:
-            fh.write(f"{A} {B} {C} {body[B]}   {positions[A]} {positions[B]} {positions[C]} ")
+            fh.write(f"{A} {B} {C} {body[B]}    {positions[A]}    {positions[B]}    {positions[C]} \n")
 
-        fh.write("DIHEDRALS (A B C D body | coords...)")
+        fh.write("\n DIHEDRALS (A B C D body | coords...) \n\n")
         for A, B, C, D in dihedrals:
-            fh.write(f"{A} {B} {C} {D} {body[B]}   {positions[A]} {positions[B]} {positions[C]} {positions[D]} ")
+            fh.write(f"{A} {B} {C} {D} {body[B]}    {positions[A]}    {positions[B]}    {positions[C]}    {positions[D]} \n")
 
-        fh.write(" IMPROPERS (center n1 n2 n3 body | coords...) ")
-        for center, n1, n2, n3 in impropers:
-            fh.write(f"{center} {n1} {n2} {n3} {body[center]}   {positions[center]} {positions[n1]} {positions[n2]} {positions[n3]} ")
+        fh.write("\n IMPROPERS (center n1 n2 n3 body | coords...) \n\n")
+        for  n1, center, n2, n3 in impropers:
+            fh.write(f" {n1} {center} {n2} {n3} {body[center]}     {positions[n1]}     {positions[center]}     {positions[n2]}    {positions[n3]} \n")
 
     return fname
 
