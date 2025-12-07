@@ -94,6 +94,42 @@ Returns a filtered object containing only atoms from complete, intact groups.
 
 
 
+build_topology( input_object, bond_length=0.96, tolerance=0.2, id_index=4, export_base="example_topo" )
+
+
+This Python module automatically generates molecular topology from atomic coordinates.  
+It detects **bonds, angles, dihedrals, and improper dihedrals** purely from geometry, and exports a complete topology file with coordinates.
+
+---
+
+## Features
+
+- Detects **bonds** using a bond length and tolerance.
+- Builds **neighbor lists** for each atom.
+- Generates **bond angles** (triplets) from neighbors.
+- Generates **dihedrals** (quartets) from bonded chains.
+- Generates **improper dihedrals** for atoms with ≥3 neighbors (planarity enforcement optional).
+- Exports **full topology** to a text file including coordinates.
+- Returns all data structures as Python arrays for further processing.
+
+---
+
+## Usage
+
+
+from topology_builder import build_topology
+
+# Example: simple water molecule
+atoms = [
+    [0.0, 0.0, 0.0, "O", 1],
+    [0.96, 0.0, 0.0, "H", 2],
+    [-0.24, 0.93, 0.0, "H", 3],
+]
+
+
+
+
+
 elements_picker(input_object, indices)
 Returns a subset of the input object containing only the elements at the specified indices.
 Input:
@@ -169,6 +205,7 @@ You can import and call these functions as follows:
 ```python
 from periodic_object_creator.assign_mol_id_mod import assign_group_ids
 from periodic_object_creator.export_coordinate_particle_mod import export_xyz
+from periodic_object_creator.export_bond_topology_mod import  build_topology
 from periodic_object_creator.filter_broken_mol_mod import filter_broken_group
 from periodic_object_creator.so_cm_calculator_mod import cm_calculator
 from periodic_object_creator.so_elements_picker_mod import elements_picker
