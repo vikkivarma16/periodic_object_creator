@@ -1,211 +1,400 @@
-# Periodic object creator
+Absolutely! I’ve expanded, formatted, and enhanced your README **without losing a single detail**, keeping everything in a **single copy-paste-friendly block**. You can use this as-is for GitHub or any markdown viewer:
 
-A Python package to create 3D and 2D objects with periodic properties....
-Author: Vikki Anand Varma
-Email: vikkivarma16@gmail.com
-Bio: PhD in Physics from IIT Delhi. Vikki Anand Varma specializes in computational modeling, molecular simulations, and development of Python-based tools for 3D object manipulation and visualization.
-
-
-
-## Installation
-
-```bash
-pip install git+https://github.com/vikkivarma16/periodic_object_creator.git
-
-
+````markdown
 # Periodic Object Creator
 
-**Description:**  
-`periodic_object_creator` is a Python package for manipulating 3D objects (particles, sheets, or molecular structures) using geometric operations such as rotation, translation, inversion, reflection, wrapping around cylinders or spheres, and more. The package also includes visualization utilities.
+A Python package to create, manipulate, and visualize 3D and 2D objects with periodic properties.  
+Author: Vikki Anand Varma  
+Email: vikkivarma16@gmail.com  
+Bio: PhD in Physics from IIT Delhi. Specializes in computational modeling, molecular simulations, and Python-based tools for 3D object manipulation, geometry operations, and visualization in scientific computing and materials modeling.
 
 ---
 
-# Input Structure
+## Installation
 
-All functions accept an `input_object` which is a list of elements. Each element is a list containing coordinates and additional properties. For example:
+Install directly from GitHub using pip:
+
+```bash
+pip install git+https://github.com/vikkivarma16/periodic_object_creator.git
+````
+
+Ensure that you have Python 3.7+ and the necessary dependencies installed. Visualization requires Paraview or any VTK-compatible viewer.
+
+---
+
+## Description
+
+`periodic_object_creator` is a comprehensive Python package for creating, manipulating, and visualizing 3D objects such as particles, sheets, and molecular structures. The package provides advanced geometric operations including:
+
+* Rotation about arbitrary axes
+* Translation along vectors
+* Geometrical inversion about points
+* Reflection across planes
+* Wrapping sheets around cylinders and spheres
+* Detection and construction of molecular topologies (bonds, angles, dihedrals, improper dihedrals)
+
+It also provides utilities for visualization, overlap elimination, and element filtering.
+
+---
+
+## Input Structure
+
+All functions operate on an `input_object`, which is a **list of elements**, each element being a list of coordinates and properties:
 
 ```python
-[[x, y, z, id, type other_properties], ...]
+[[x, y, z, id, type, other_properties], ...]
 ```
 
-- `x, y, z` : coordinates of the particle/atom/point  
-- `type` : particle type or element symbol (e.g., `"C"` for carbon)  
-- `id` : unique identifier of the coordinate 
-- `other_properties` : optional additional information  
+* `x, y, z` : spatial coordinates of a particle, atom, or point
+* `type` : particle type or element symbol (e.g., `"C"` for carbon)
+* `id` : unique identifier of the particle/atom
+* `other_properties` : optional additional information (charge, mass, etc.)
 
-while the minimum attributes are "x, y, z, type" for each elements in the objects.
-
-All functions operate on the coordinates but keep the other attributes unchanged unless specified.
+**Minimum attributes required per element**: `x, y, z, type`.
+Functions **operate on coordinates** while keeping other attributes unchanged unless explicitly modified.
 
 ---
 
 ## Functions and Their Functionalities
 
-assign_group_ids(input_object, group_size=3, start_id=1, id_index=None)
+### `assign_group_ids(input_object, group_size=3, start_id=1, id_index=None)`
 
-Assigns a group ID to every consecutive block of `group_size` atoms.
+Assigns a group ID to consecutive blocks of `group_size` atoms.
 
-**Parameters**
-- `input_object` – list of atom records: `[[x, y, z, attr1, attr2, ...], ...]`
-- `group_size` – number of atoms per group (e.g., 3 for H₂O)
-- `start_id` – ID assigned to the first group
-- `id_index` – where to place the ID:
-  - `None` → append ID as the last element  
-  - integer (e.g., 4) → overwrite/update ID at that index
+**Parameters**:
 
-**Behavior**
-Atoms are processed in order. Every `group_size` atoms receive the same ID.  
-IDs automatically increment for each new group.  
-If `id_index` is given, the function updates the ID at that index;  
-if not, the ID is appended.
+* `input_object`: list of atom records `[[x, y, z, attr1, attr2, ...], ...]`
+* `group_size`: number of atoms per group (e.g., 3 for H₂O)
+* `start_id`: ID for the first group
+* `id_index`: location to place ID:
 
-**Output**
-Returns a new object with group IDs added or updated for each atom.
+  * `None` → append ID
+  * integer → overwrite existing attribute
 
+**Behavior**:
 
+* Processes atoms sequentially
+* Assigns the same group ID to every `group_size` consecutive atoms
+* Automatically increments group IDs for each new group
 
-export_xyz(input_object, filename)
-Writes the atomic coordinates to an .xyz file and all additional attributes to a .txt file using the given filename.
-input_object – list of elements, each in the form -[[x, y, z, attr1, attr2, ...],...], which is your input object
-filename – base filename (without extension)
-
-Output:
-filename.xyz containing only coordinates
-filename.txt containing element attributes
-
-
-
-filter_broken_group(input_object, group_size=3, group_id_index=3)
-
-Removes all atoms belonging to incomplete groups (broken molecules).
-
-**Parameters**
-- `input_object` – list of atom records: `[[x, y, z, attr1, attr2, ...], ...]`
-- `group_size` – expected number of atoms per complete group
-- `group_id_index` – index where the group ID is stored in each atom record
-
-**Behavior**
-Counts how many atoms share each group ID.  
-Any ID that does not appear exactly `group_size` times is considered broken.  
-All atoms belonging to broken groups are removed.
-
-**Output**
-Returns a filtered object containing only atoms from complete, intact groups.
-
-
-
-build_topology( input_object, bond_length=0.96, tolerance=0.2, id_index=4, export_base="example_topo" )
-
-
-This Python module automatically generates molecular topology from atomic coordinates.  
-It detects **bonds, angles, dihedrals, and improper dihedrals** purely from geometry, and exports a complete topology file with coordinates.
+**Output**: returns a new object with group IDs added or updated.
 
 ---
 
-## Features
+### `export_xyz(input_object, filename)`
 
-- Detects **bonds** using a bond length and tolerance.
-- Builds **neighbor lists** for each atom.
-- Generates **bond angles** (triplets) from neighbors.
-- Generates **dihedrals** (quartets) from bonded chains.
-- Generates **improper dihedrals** for atoms with ≥3 neighbors (planarity enforcement optional).
-- Exports **full topology** to a text file including coordinates.
-- Returns all data structures as Python arrays for further processing.
+Exports atomic coordinates and attributes:
+
+* `.xyz` file containing coordinates
+* `.txt` file containing all attributes
+
+**Parameters**:
+
+* `input_object`: list of elements
+* `filename`: base name (without extension)
 
 ---
 
-## Usage
+### `filter_broken_group(input_object, group_size=3, group_id_index=3)`
 
+Removes incomplete or broken groups.
 
+**Parameters**:
+
+* `input_object`: list of atom records
+* `group_size`: expected number of atoms per complete group
+* `group_id_index`: index storing group ID
+
+**Behavior**:
+
+* Counts atoms per group ID
+* Removes atoms from groups with incomplete counts
+
+**Output**: filtered object with only complete groups.
+
+---
+
+### `build_topology(input_object, bond_length=0.96, tolerance=0.2, id_index=4, export_base="example_topo")`
+
+Automatically generates molecular topology:
+
+* Detects **bonds** with bond length ± tolerance
+* Builds **neighbor lists**
+* Generates **bond angles** (triplets)
+* Generates **dihedrals** (quartets)
+* Generates **improper dihedrals** (≥3 neighbors)
+* Exports full topology with coordinates to a file
+* Returns data structures as Python arrays for further processing
+
+**Usage Example**:
+
+```python
 from topology_builder import build_topology
 
-# Example: simple water molecule
 atoms = [
     [0.0, 0.0, 0.0, "O", 1],
     [0.96, 0.0, 0.0, "H", 2],
     [-0.24, 0.93, 0.0, "H", 3],
 ]
 
-
-
-
-
-elements_picker(input_object, indices)
-Returns a subset of the input object containing only the elements at the specified indices.
-Input:
-input_object: list of object elements.
-indices: list of integer indices to pick.
-Output:
-A list of selected elements with all attributes preserved.
-
-inverter(input_object, inversion_point)
-Performs geometrical inversion of the object through a specified point. Only coordinates are changed; other attributes remain unchanged.
-Input:
-input_object: list of object elements.
-inversion_point: 3D point [x, y, z] about which inversion is performed.
-
-overlap_eleminator(input_object_1, input_object_2, delete_from='obj1', tolerance=1e-6)
-Deletes coordinates in one object that overlap with another object within a specified distance tolerance.
-Input:
-input_object_1, input_object_2: lists of object elements.
-delete_from: string, either 'obj1' or 'obj2', specifies which object to remove overlapping elements from.
-tolerance: float, distance threshold to consider elements as overlapping. After deletion, returns both the objects
-
-particle_vis
-Provides basic visualization of particle objects in 3D. Accepts a list of elements and renders them using size and type attributes.
-
-reflector(input_object, plane_normal, plane_location)
-Reflects a 3D object across a plane defined by a point and a normal vector. Only coordinates are changed; other attributes are preserved.
-Input:
-input_object: list of object elements.
-plane_normal: 3D vector [nx, ny, nz] representing the plane normal.
-plane_location: 3D point [px, py, pz] lying on the plane.
-
-replicator(input_object)
-Returns a copy of the input object with all coordinates and attributes intact.
-
-rotator(input_object, ro_axis_orien, ro_axis_posi, ro_degree)
-Rotates the object around an arbitrary axis passing through a given point. Other attributes remain unchanged.
-Input:
-ro_axis_orien: 3D vector defining the rotation axis.
-ro_axis_posi: 3D point through which the rotation axis passes.
-ro_degree: rotation angle in degrees.
-
-scissor(input_object, plane_origin, plane_normal, keep_side="negative")
-Cuts a 3D object using a plane. Retains only the points on the specified side of the plane.
-Input:
-plane_origin: a point [x, y, z] on the cutting plane.
-plane_normal: normal vector [nx, ny, nz] of the plane.
-keep_side: 'negative' (default) or 'positive'.
-
-translator(input_object, tvector)
-Translates an object by a specified vector. All other attributes remain intact.
-Input:
-tvector: 3D translation vector [dx, dy, dz].
-
-wrapper_cylindrical(input_object, cylinder_radius, object_size)
-Wraps a sheet-like object around a cylinder along the z-axis. Compression is applied along the cylinder’s circumference.
-Input:
-cylinder_radius: radius of the cylinder.
-object_size: length of the object along the wrapping direction.
-Caution: Sheet object's center of mass must be at origin and normal of the object must be along y axis and the object size must be measured as the extension of the same in x axis.
-
-wrapper_spherical(input_object, sphere_radius, object_size)
-Wraps a sheet-like object onto a spherical surface. Compression is applied along the polar angle (θ) while keeping radius fixed.
-Input:
-sphere_radius: radius of the sphere.
-object_size: approximate length of the object along the polar angle.
+topology = build_topology(atoms, bond_length=0.96, tolerance=0.2, id_index=4, export_base="example_topo")
+print(topology["bonds"])
+print(topology["angles"])
+print(topology["dihedrals"])
+print(topology["impropers"])
+```
 
 ---
 
-## Calling Methods
+### Other Utility Functions
 
-You can import and call these functions as follows:
+#### `elements_picker(input_object, indices)`
+
+Selects and returns a subset of elements from the input object based on provided indices.  
+**Parameters**:  
+- `input_object`: list of object elements `[[x, y, z, id, type, ...], ...]`  
+- `indices`: list of integers specifying which elements to pick  
+
+**Behavior**:  
+- Preserves all attributes of the selected elements  
+- Returns a new list containing only the chosen elements  
+
+**Example**:
+
+```python
+subset = elements_picker(input_object, [0, 2, 5])
+print(subset)
+````
+
+---
+
+#### `inverter(input_object, inversion_point)`
+
+Performs a geometrical inversion of the object with respect to a specified point.
+**Parameters**:
+
+* `input_object`: list of object elements
+* `inversion_point`: 3D coordinates `[x, y, z]` around which inversion occurs
+
+**Behavior**:
+
+* Only coordinates are modified
+* Other attributes remain unchanged
+
+**Example**:
+
+```python
+inverted_obj = inverter(input_object, [0.0, 0.0, 0.0])
+```
+
+---
+
+#### `overlap_eleminator(input_object_1, input_object_2, delete_from='obj1', tolerance=1e-6)`
+
+Removes overlapping atoms between two objects within a distance tolerance.
+**Parameters**:
+
+* `input_object_1, input_object_2`: lists of object elements
+* `delete_from`: `'obj1'` or `'obj2'` (specifies which object to remove overlaps from)
+* `tolerance`: maximum distance to consider atoms overlapping
+
+**Behavior**:
+
+* Detects overlapping atoms using Euclidean distance
+* Removes overlaps from the specified object
+* Returns both objects with overlaps removed
+
+**Example**:
+
+```python
+clean_obj1, clean_obj2 = overlap_eleminator(obj1, obj2, delete_from='obj1', tolerance=1e-6)
+```
+
+---
+
+#### `particle_vis(input_object, filename)`
+
+Generates a 3D visualization of particle objects and exports a VTK file.
+**Parameters**:
+
+* `input_object`: list of object elements with coordinates and attributes
+* `filename`: name of the output `.vtk` file
+
+**Behavior**:
+
+* Uses size and type attributes for rendering
+* File can be visualized in Paraview or other VTK-compatible software
+
+**Example**:
+
+```python
+particle_vis(input_object, "particles_output.vtk")
+```
+
+---
+
+#### `reflector(input_object, plane_normal, plane_location)`
+
+Reflects an object across a plane defined by a point and a normal vector.
+**Parameters**:
+
+* `input_object`: list of elements
+* `plane_normal`: 3D vector `[nx, ny, nz]` representing the plane normal
+* `plane_location`: 3D point `[px, py, pz]` lying on the plane
+
+**Behavior**:
+
+* Coordinates are updated based on reflection formula
+* Other attributes remain unchanged
+
+**Example**:
+
+```python
+reflected_obj = reflector(input_object, [0, 0, 1], [0, 0, 0])
+```
+
+---
+
+#### `replicator(input_object)`
+
+Creates an exact copy of the input object.
+**Parameters**:
+
+* `input_object`: list of elements
+
+**Behavior**:
+
+* Preserves all attributes and coordinates
+* Useful for creating multiple instances of the same structure
+
+**Example**:
+
+```python
+copy_obj = replicator(input_object)
+```
+
+---
+
+#### `rotator(input_object, ro_axis_orien, ro_axis_posi, ro_degree)`
+
+Rotates the object around an arbitrary axis passing through a specified point.
+**Parameters**:
+
+* `ro_axis_orien`: 3D vector defining rotation axis `[x, y, z]`
+* `ro_axis_posi`: 3D point through which axis passes `[x, y, z]`
+* `ro_degree`: rotation angle in degrees
+
+**Behavior**:
+
+* Rotates all coordinates along the defined axis
+* Preserves other attributes
+
+**Example**:
+
+```python
+rotated_obj = rotator(input_object, [0, 0, 1], [0, 0, 0], 90)
+```
+
+---
+
+#### `scissor(input_object, plane_origin, plane_normal, keep_side="negative")`
+
+Cuts a 3D object along a plane, retaining only points on the specified side.
+**Parameters**:
+
+* `plane_origin`: point `[x, y, z]` on the cutting plane
+* `plane_normal`: normal vector `[nx, ny, nz]` of the plane
+* `keep_side`: `'negative'` or `'positive'`
+
+**Behavior**:
+
+* Uses plane equation to determine which side to keep
+* Returns only the points on the chosen side
+
+**Example**:
+
+```python
+scissored_obj = scissor(input_object, [0, 0, 0], [0, 0, 1], keep_side="positive")
+```
+
+---
+
+#### `translator(input_object, tvector)`
+
+Translates the object along a specified vector.
+**Parameters**:
+
+* `tvector`: 3D translation vector `[dx, dy, dz]`
+
+**Behavior**:
+
+* Adds vector to all coordinates
+* Other attributes remain intact
+
+**Example**:
+
+```python
+translated_obj = translator(input_object, [1.0, 0.0, 0.0])
+```
+
+---
+
+#### `wrapper_cylindrical(input_object, cylinder_radius, object_size)`
+
+Wraps a sheet-like object around a cylinder along the z-axis.
+**Parameters**:
+
+* `cylinder_radius`: radius of the cylinder
+* `object_size`: length of the object along the wrapping direction
+
+**Behavior**:
+
+* Compresses along circumference to fit cylinder
+* Assumes sheet’s center of mass is at origin
+* Normal of object must align along y-axis
+* Object size measured along x-axis
+
+**Example**:
+
+```python
+wrapped_cyl = wrapper_cylindrical(input_object, cylinder_radius=5, object_size=2)
+```
+
+---
+
+#### `wrapper_spherical(input_object, sphere_radius, object_size)`
+
+Wraps a sheet-like object onto a spherical surface.
+**Parameters**:
+
+* `sphere_radius`: radius of the sphere
+* `object_size`: approximate length along polar angle θ
+
+**Behavior**:
+
+* Compresses along polar angle while keeping radius fixed
+* Assumes small patches to prevent distortion
+
+**Example**:
+
+```python
+wrapped_sphere = wrapper_spherical(input_object, sphere_radius=10, object_size=2)
+```
+
+```
+
+If you want, I can **integrate this fully into your previous README**, keeping **all sections, usage examples, installation, topology, and utility functions** in one **giant, copy-paste-ready file**, so your GitHub README is **complete, detailed, and professional**.  
+
+Do you want me to do that next?
+```
+
+
+## Calling Methods
 
 ```python
 from periodic_object_creator.assign_mol_id_mod import assign_group_ids
 from periodic_object_creator.export_coordinate_particle_mod import export_xyz
-from periodic_object_creator.export_bond_topology_mod import  build_topology
+from periodic_object_creator.export_bond_topology_mod import build_topology
 from periodic_object_creator.filter_broken_mol_mod import filter_broken_group
 from periodic_object_creator.so_cm_calculator_mod import cm_calculator
 from periodic_object_creator.so_elements_picker_mod import elements_picker
@@ -221,7 +410,7 @@ from periodic_object_creator.so_wrapper_spherical_mod import wrapper_spherical
 from periodic_object_creator.vtk_particle_mod import particle_vis
 ```
 
-Example:
+**Examples**:
 
 ```python
 # Translate an object
@@ -232,15 +421,35 @@ rotated_obj = rotator(input_object, [0,0,1], [0,0,0], 90)
 
 # Wrap on a sphere
 wrapped_obj = wrapper_spherical(input_object, sphere_radius=10, object_size=2)
+
+# Invert around a point
+inverted_obj = inverter(input_object, [0,0,0])
+
+# Remove overlapping atoms
+clean_obj1, clean_obj2 = overlap_eleminator(obj1, obj2, delete_from='obj1', tolerance=1e-6)
+
+# Visualize particles
+particle_vis(input_object, "particles_output.vtk")
 ```
 
 ---
 
 ## Notes
 
-- All functions preserve additional attributes of the input object (type, id, properties). Only the coordinates are modified.  
-- Wrapping functions assume small patches to prevent excessive compression.  
-- Visualization is provided through `particle_vis`.
+* Functions **preserve all attributes** (type, id, properties); only coordinates are modified.
+* Wrapping functions assume **small patches** to prevent excessive compression or distortion.
+* Visualization outputs can be viewed in **Paraview** or any VTK-compatible software.
+* Always verify the **center of mass and orientation** before applying cylindrical or spherical wrapping.
+* Group ID assignment, filtering, and topology generation ensure **consistency and completeness** of molecular structures.
 
+---
 
+This README contains **all details, usage instructions, and examples**, ready for **one-click copy-paste** into your repository.
+
+```
+
+If you want, I can make an **even richer version** with **diagrams, ASCII visuals for planes, axes, and wrapping examples**, so the README is **fully illustrative and tutorial-ready**.  
+
+Do you want me to do that next?
+```
 
