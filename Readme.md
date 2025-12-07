@@ -3,9 +3,10 @@
 # Periodic Object Creator
 
 A Python package to create, manipulate, and visualize 3D and 2D objects with periodic properties.  
-Author: Vikki Anand Varma  
-Email: vikkivarma16@gmail.com  
-Bio: PhD in Physics from IIT Delhi. Specializes in computational modeling, molecular simulations, and Python-based tools for 3D object manipulation, geometry operations, and visualization in scientific computing and materials modeling.
+
+**Author:** Vikki Anand Varma  
+**Email:** vikkivarma16@gmail.com  
+**Bio:** PhD in Physics from IIT Delhi. Specializes in computational modeling, molecular simulations, and Python-based tools for 3D object manipulation, geometry operations, and visualization in scientific computing and materials modeling.
 
 ---
 
@@ -15,9 +16,9 @@ Install directly from GitHub using pip:
 
 ```bash
 pip install git+https://github.com/vikkivarma16/periodic_object_creator.git
-```
+````
 
-Ensure that you have Python 3.7+ and the necessary dependencies installed. Visualization requires Paraview or any VTK-compatible viewer.
+Ensure that you have **Python 3.7+** and the necessary dependencies installed. Visualization requires **Paraview** or any **VTK-compatible viewer**.
 
 ---
 
@@ -94,8 +95,6 @@ Exports atomic coordinates and attributes:
 
 ---
 
-
-
 ### `get_object_size(input_object, coord_indices=[0,1,2])`
 
 Calculates the **size and extension** of a 3D object along x, y, and z axes.
@@ -105,12 +104,15 @@ Calculates the **size and extension** of a 3D object along x, y, and z axes.
 * `input_object` : List of elements with coordinates, e.g., `[[x, y, z, ...], ...]`
 
 **Output:**
+
 Dictionary with `min`, `max`, and `size` for each axis:
 
 ```python
-{'x': {'min':..., 'max':..., 'size':...},
- 'y': {'min':..., 'max':..., 'size':...},
- 'z': {'min':..., 'max':..., 'size':...}}
+{
+  'x': {'min':..., 'max':..., 'size':...},
+  'y': {'min':..., 'max':..., 'size':...},
+  'z': {'min':..., 'max':..., 'size':...}
+}
 ```
 
 **Example:**
@@ -122,7 +124,6 @@ print(size_info)
 ```
 
 ---
-
 
 ### `filter_broken_group(input_object, group_size=3, group_id_index=3)`
 
@@ -148,13 +149,12 @@ Removes incomplete or broken groups.
 Automatically generates molecular topology with optional multi-body support:
 
 * Detects **bonds** within same body (bond length ± tolerance)
-* For case of many body yes search the topology only within the body, where the body index within the element must be specified so that it can pick the element lying within the same body.
-* After searching the topology for all the body present and specified in the object it export the data in combined format where topological properties are mentioned with elements involved e.g, atom 1 2 3 making an angle belonging to body 1  so the angle will be mentioned with angle id atom 1 id atom 2 id atom 3 id body id and the coordinates of the atoms.
+* For many-body cases, searches topology only within the body specified by `id_body_index`
+* Exports combined topology data including **body IDs** and coordinates
 * Builds **neighbor lists**
 * Generates **bond angles** (triplets) within same body
 * Generates **dihedrals** (quartets) within same body
 * Generates **improper dihedrals** (≥3 neighbors) within same body
-* Exports full topology including **body IDs** and coordinates to a file
 * Returns data structures as Python arrays for further processing
 
 **Usage Example**:
@@ -163,7 +163,7 @@ Automatically generates molecular topology with optional multi-body support:
 from topology_builder import build_topology
 
 atoms = [
-    [0.0, 0.0, 0.0, "O", 1, 1],   # last element can be atom id, optional body id
+    [0.0, 0.0, 0.0, "O", 1, 1],
     [0.96, 0.0, 0.0, "H", 2, 1],
     [-0.24, 0.93, 0.0, "H", 3, 1],
 ]
@@ -183,9 +183,8 @@ print(topology["angles"])
 print(topology["dihedrals"])
 print(topology["impropers"])
 ```
----
 
-### Other Utility Functions
+---
 
 #### `elements_picker(input_object, indices)`
 
@@ -420,14 +419,6 @@ Wraps a sheet-like object onto a spherical surface.
 wrapped_sphere = wrapper_spherical(input_object, sphere_radius=10, object_size=2)
 ```
 
-```
-
-If you want, I can **integrate this fully into your previous README**, keeping **all sections, usage examples, installation, topology, and utility functions** in one **giant, copy-paste-ready file**, so your GitHub README is **complete, detailed, and professional**.  
-
-Do you want me to do that next?
-```
-
-
 ## Calling Methods
 
 ```python
@@ -450,7 +441,7 @@ from periodic_object_creator.so_wrapper_spherical_mod import wrapper_spherical
 from periodic_object_creator.vtk_particle_mod import particle_vis
 ```
 
-**Examples**:
+**Usage Examples**:
 
 ```python
 # Translate an object
@@ -483,4 +474,3 @@ particle_vis(input_object, "particles_output.vtk")
 * Group ID assignment, filtering, and topology generation ensure **consistency and completeness** of molecular structures.
 
 ---
-
