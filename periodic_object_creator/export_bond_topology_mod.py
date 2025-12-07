@@ -108,10 +108,10 @@ def export_topology_text(filename_base, bonds, angles, dihedrals, impropers, pos
     total_bodies = len(set(body.values()))
     with open(fname, "w") as fh:
         fh.write("SUMMARY COUNTS")
-        fh.write(f"TOTAL_ELEMENTS: {len(positions)}  \n ")
+        fh.write(f"TOTAL_ELEMENTS: {len(positions)}  \n")
         fh.write(f"TOTAL_BODIES: {total_bodies}\n")
         fh.write(f"TOTAL_BONDS: {len(bonds)}  \n")
-        fh.write(f"TOTAL_ANGLES: {len(angles)}  \n ")
+        fh.write(f"TOTAL_ANGLES: {len(angles)}  \n")
         fh.write(f"TOTAL_DIHEDRALS: {len(dihedrals)} \n")
         fh.write(f"TOTAL_IMPROPERS: {len(impropers)} \n")
 
