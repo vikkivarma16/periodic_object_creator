@@ -154,15 +154,15 @@ def export_topology_text(filename_base, bonds, angles, dihedrals, impropers, id_
             a1, a2 = b
             x1, y1, z1 = id_to_pos[a1]
             x2, y2, z2 = id_to_pos[a2]
-            fh.write(f"{a1} {a2} | {x1:.6f} {y1:.6f} {z1:.6f} | {x2:.6f} {y2:.6f} {z2:.6f}\n")
+            fh.write(f"{a1} {a2}       {x1:.6f} {y1:.6f} {z1:.6f}     {x2:.6f} {y2:.6f} {z2:.6f}\n")
 
         # ===== ANGLES =====
         fh.write("\nANGLES (A B C | coordsA | coordsB | coordsC)\n")
         for A, B, C in angles:
             fh.write(
-                f"{A} {B} {C} | "
-                f"{id_to_pos[A][0]:.6f} {id_to_pos[A][1]:.6f} {id_to_pos[A][2]:.6f} | "
-                f"{id_to_pos[B][0]:.6f} {id_to_pos[B][1]:.6f} {id_to_pos[B][2]:.6f} | "
+                f"{A} {B} {C}       "
+                f"{id_to_pos[A][0]:.6f} {id_to_pos[A][1]:.6f} {id_to_pos[A][2]:.6f}    "
+                f"{id_to_pos[B][0]:.6f} {id_to_pos[B][1]:.6f} {id_to_pos[B][2]:.6f}    "
                 f"{id_to_pos[C][0]:.6f} {id_to_pos[C][1]:.6f} {id_to_pos[C][2]:.6f}\n"
             )
 
@@ -170,21 +170,21 @@ def export_topology_text(filename_base, bonds, angles, dihedrals, impropers, id_
         fh.write("\nDIHEDRALS (A B C D | coordsA | coordsB | coordsC | coordsD)\n")
         for A, B, C, D in dihedrals:
             fh.write(
-                f"{A} {B} {C} {D} | "
-                f"{id_to_pos[A][0]:.6f} {id_to_pos[A][1]:.6f} {id_to_pos[A][2]:.6f} | "
-                f"{id_to_pos[B][0]:.6f} {id_to_pos[B][1]:.6f} {id_to_pos[B][2]:.6f} | "
-                f"{id_to_pos[C][0]:.6f} {id_to_pos[C][1]:.6f} {id_to_pos[C][2]:.6f} | "
+                f"{A} {B} {C} {D}      "
+                f"{id_to_pos[A][0]:.6f} {id_to_pos[A][1]:.6f} {id_to_pos[A][2]:.6f}    "
+                f"{id_to_pos[B][0]:.6f} {id_to_pos[B][1]:.6f} {id_to_pos[B][2]:.6f}    "
+                f"{id_to_pos[C][0]:.6f} {id_to_pos[C][1]:.6f} {id_to_pos[C][2]:.6f}    "
                 f"{id_to_pos[D][0]:.6f} {id_to_pos[D][1]:.6f} {id_to_pos[D][2]:.6f}\n"
             )
 
         # ===== IMPROPERS =====
-        fh.write("\nIMPROPERS (center n1 n2 n3 | coords ...)\n")
+        fh.write("\nIMPROPERS ( n1 center n2 n3 | coords ...)\n")
         for center, n1, n2, n3 in impropers:
             fh.write(
-                f"{center} {n1} {n2} {n3} | "
-                f"{id_to_pos[center][0]:.6f} {id_to_pos[center][1]:.6f} {id_to_pos[center][2]:.6f} | "
-                f"{id_to_pos[n1][0]:.6f} {id_to_pos[n1][1]:.6f} {id_to_pos[n1][2]:.6f} | "
-                f"{id_to_pos[n2][0]:.6f} {id_to_pos[n2][1]:.6f} {id_to_pos[n2][2]:.6f} | "
+                f" {n1} {center} {n2} {n3}       "
+                f"{id_to_pos[n1][0]:.6f} {id_to_pos[n1][1]:.6f} {id_to_pos[n1][2]:.6f}    "
+                f"{id_to_pos[center][0]:.6f} {id_to_pos[center][1]:.6f} {id_to_pos[center][2]:.6f}    "
+                f"{id_to_pos[n2][0]:.6f} {id_to_pos[n2][1]:.6f} {id_to_pos[n2][2]:.6f}    "
                 f"{id_to_pos[n3][0]:.6f} {id_to_pos[n3][1]:.6f} {id_to_pos[n3][2]:.6f}\n"
             )
 
