@@ -5,6 +5,7 @@ from math import sin, cos, tan, asin, acos, atan
 
 
 from periodic_object_creator.assign_mol_id_mod import assign_group_ids
+from periodic_object_creator.export_bond_topology_mod import  build_topology
 from periodic_object_creator.export_coordinate_particle_mod import export_xyz
 from periodic_object_creator.filter_broken_mol_mod import filter_broken_group
 from periodic_object_creator.so_cm_calculator_mod import cm_calculator
@@ -170,9 +171,26 @@ cnt  =  wrapper_cylindrical(basis_object_5, cylinder_radius, object_size)
 # export_xyz (cnt, "cord_cnt")
 
 
+current_id = 1
+group_size = len(basis_object)
+remove_existing_trailing_id=True
+id_index = None
+new_obj = assign_group_ids(cnt, group_size, current_id, id_index)
+
+cnt = new_obj
+bond_length =  1.42 
+tolerance  = 0.2 
+build_topology(cnt, bond_length, tolerance, id_index=None, coord_indices=(0,1,2), export_base="topology")
 
 
 
+
+
+
+
+
+
+# Filling up water molecules.
 
 basis = [[0.0000000, 0.000000,  0.00000, "O", 1], [0.8164904, 0.5773590, 0.00000, "H", 1], [-0.8164904, 0.5773590, 0.00000, "H", 1]]
 tvector  = [0.8164904, 0.0, 0.0]

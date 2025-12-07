@@ -4,9 +4,10 @@ from math import sin, cos, tan, asin, acos, atan
 
 
  
-
+from periodic_object_creator.assign_mol_id_mod import assign_group_ids
 from periodic_object_creator.so_cm_calculator_mod import cm_calculator
 from periodic_object_creator.export_coordinate_particle_mod import export_xyz
+from periodic_object_creator.export_bond_topology_mod import  build_topology
 from periodic_object_creator.so_elements_picker_mod import elements_picker
 from periodic_object_creator.so_inverter_mod import inverter
 from periodic_object_creator.so_overlap_eleminator_mod import overlap_eleminator
@@ -19,9 +20,10 @@ from periodic_object_creator.so_wrapper_cylindrical_mod import wrapper_cylindric
 from periodic_object_creator.so_wrapper_spherical_mod import wrapper_spherical
 from periodic_object_creator.vtk_particle_mod import particle_vis
 
-
+#def assign_group_ids(obj, group_size=3, start_id=1, id_index_in_element=None):
 #def export_xyz (cnt, "cord_cnt"):
 #def inverter(input_object, inversion_point):
+#def build_topology(cnt, bond_length, tolerance, id_index=None, coord_indices=(0,1,2), export_base="topology"):
 #def overlap_eleminator(input_object_1, input_object_2, delete_from='obj1', tolerance=1e-6):
 #def particle_vis(input_data_ps, filename):
 #def picker(input_object, indices):
@@ -167,5 +169,16 @@ particle_vis(cnt, "cnt")
 export_xyz (cnt, "cord_cnt")
 
 
+
+current_id = 1
+group_size = len(basis_object)
+remove_existing_trailing_id=True
+id_index = None
+new_obj = assign_group_ids(cnt, group_size, current_id, id_index)
+
+cnt = new_obj
+bond_length =  1.42 
+tolerance  = 0.2 
+build_topology(cnt, bond_length, tolerance, id_index=None, coord_indices=(0,1,2), export_base="cnt_full_topology")
 
 
