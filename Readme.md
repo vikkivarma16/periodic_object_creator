@@ -1,4 +1,3 @@
-Absolutely! I’ve expanded, formatted, and enhanced your README **without losing a single detail**, keeping everything in a **single copy-paste-friendly block**. You can use this as-is for GitHub or any markdown viewer:
 
 ````markdown
 # Periodic Object Creator
@@ -443,13 +442,4 @@ particle_vis(input_object, "particles_output.vtk")
 * Group ID assignment, filtering, and topology generation ensure **consistency and completeness** of molecular structures.
 
 ---
-
-This README contains **all details, usage instructions, and examples**, ready for **one-click copy-paste** into your repository.
-
-```
-
-If you want, I can make an **even richer version** with **diagrams, ASCII visuals for planes, axes, and wrapping examples**, so the README is **fully illustrative and tutorial-ready**.  
-
-Do you want me to do that next?
-```
 
