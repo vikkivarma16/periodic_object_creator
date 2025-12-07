@@ -120,7 +120,7 @@ def export_topology_text(filename_base, bonds, angles, dihedrals, impropers, pos
         for a1, a2 in bonds:
             x1, y1, z1 = positions[a1]
             x2, y2, z2 = positions[a2]
-            fh.write(f"{i}   {a1} {a2} {body[a1]}    "
+            fh.write(f"{i}   {a1} {a2}   {body[a1]}    "
                      f"{x1:.6f}  {y1:.6f}  {z1:.6f}    "
                      f"{x2:.6f}  {y2:.6f}  {z2:.6f}\n")
             i = i+1 
@@ -131,7 +131,7 @@ def export_topology_text(filename_base, bonds, angles, dihedrals, impropers, pos
             xA, yA, zA = positions[A]
             xB, yB, zB = positions[B]
             xC, yC, zC = positions[C]
-            fh.write(f"{i}   {A} {B} {C} {body[B]}    "
+            fh.write(f"{i}   {A} {B} {C}   {body[B]}    "
                      f"{xA:.6f}  {yA:.6f}  {zA:.6f}    "
                      f"{xB:.6f}  {yB:.6f}  {zB:.6f}    "
                      f"{xC:.6f}  {yC:.6f}  {zC:.6f}\n")
@@ -144,7 +144,7 @@ def export_topology_text(filename_base, bonds, angles, dihedrals, impropers, pos
             xB, yB, zB = positions[B]
             xC, yC, zC = positions[C]
             xD, yD, zD = positions[D]
-            fh.write(f"{i}   {A} {B} {C} {D} {body[B]}    "
+            fh.write(f"{i}   {A} {B} {C} {D}   {body[B]}    "
                      f"{xA:.6f}  {yA:.6f}  {zA:.6f}    "
                      f"{xB:.6f}  {yB:.6f}  {zB:.6f}    "
                      f"{xC:.6f}  {yC:.6f}  {zC:.6f}    "
@@ -158,7 +158,7 @@ def export_topology_text(filename_base, bonds, angles, dihedrals, impropers, pos
             x1, y1, z1 = positions[n1]
             x2, y2, z2 = positions[n2]
             x3, y3, z3 = positions[n3]
-            fh.write(f"{i}   {n1} {center} {n2} {n3} {body[center]}    "
+            fh.write(f"{i}   {n1} {center} {n2} {n3}   {body[center]}    "
                      f"{x1:.6f}  {y1:.6f}  {z1:.6f}    "
                      f"{xC:.6f}  {yC:.6f}  {zC:.6f}    "
                      f"{x2:.6f}  {y2:.6f}  {z2:.6f}    "
