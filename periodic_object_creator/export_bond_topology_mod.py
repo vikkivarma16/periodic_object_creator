@@ -29,7 +29,7 @@ from collections import defaultdict
 import os
 
 here = os.path.dirname(__file__)
-lib_path = os.path.join(here, "support_engine_overlap_finder.so")
+lib_path = os.path.join(here, "support_engine_bond_finder.so")
 lib = cdll.LoadLibrary(lib_path)
 
 lib.bond_finder_grid.argtypes = [
