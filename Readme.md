@@ -227,7 +227,7 @@ inverted_obj = inverter(input_object, [0.0, 0.0, 0.0])
 
 ---
 
-#### `overlap_eleminator(input_object_1, input_object_2, delete_from='obj1', tolerance=1e-6)`
+#### `overlap_eliminator(input_object_1, input_object_2, delete_from='obj1', tolerance=1e-6)`
 
 Removes overlapping atoms between two objects within a distance tolerance.
 **Parameters**:
@@ -245,7 +245,7 @@ Removes overlapping atoms between two objects within a distance tolerance.
 **Example**:
 
 ```python
-clean_obj1, clean_obj2 = overlap_eleminator(obj1, obj2, delete_from='obj1', tolerance=1e-6)
+clean_obj1, clean_obj2 = overlap_eliminator(obj1, obj2, delete_from='obj1', tolerance=1e-6)
 ```
 
 ---
@@ -430,7 +430,7 @@ from periodic_object_creator.filter_broken_mol_mod import filter_broken_group
 from periodic_object_creator.so_cm_calculator_mod import cm_calculator
 from periodic_object_creator.so_elements_picker_mod import elements_picker
 from periodic_object_creator.so_inverter_mod import inverter
-from periodic_object_creator.so_overlap_eleminator_mod import overlap_eleminator
+from periodic_object_creator.so_overlap_eliminator_mod import overlap_eliminator
 from periodic_object_creator.so_reflector_mod import reflector
 from periodic_object_creator.so_replicator_mod import replicator
 from periodic_object_creator.so_rotator_mod import rotator
@@ -457,7 +457,7 @@ wrapped_obj = wrapper_spherical(input_object, sphere_radius=10, object_size=2)
 inverted_obj = inverter(input_object, [0,0,0])
 
 # Remove overlapping atoms
-clean_obj1, clean_obj2 = overlap_eleminator(obj1, obj2, delete_from='obj1', tolerance=1e-6)
+clean_obj1, clean_obj2 = overlap_eliminator(obj1, obj2, delete_from='obj1', tolerance=1e-6)
 
 # Visualize particles
 particle_vis(input_object, "particles_output.vtk")

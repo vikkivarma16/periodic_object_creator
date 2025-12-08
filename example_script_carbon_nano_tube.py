@@ -11,7 +11,7 @@ from periodic_object_creator.export_bond_topology_mod import  build_topology
 from periodic_object_creator.export_object_size_mod import get_object_size
 from periodic_object_creator.so_elements_picker_mod import elements_picker
 from periodic_object_creator.so_inverter_mod import inverter
-from periodic_object_creator.so_overlap_eleminator_mod import overlap_eleminator
+from periodic_object_creator.so_overlap_eliminator_mod import overlap_eliminator
 from periodic_object_creator.so_reflector_mod import reflector
 from periodic_object_creator.so_replicator_mod import replicator
 from periodic_object_creator.so_rotator_mod import rotator
@@ -26,7 +26,7 @@ from periodic_object_creator.vtk_particle_mod import particle_vis
 #def get_object_size(input_object, coord_indices=(0,1,2)):
 #def inverter(input_object, inversion_point):
 #def build_topology(input_object, bond_length, tolerance, id_index=None, coord_indices=(0,1,2), export_base="topology_data", many_body=True, id_body_index = 6):
-#def overlap_eleminator(input_object_1, input_object_2, delete_from='obj1', tolerance=1e-6):
+#def overlap_eliminator(input_object_1, input_object_2, delete_from='obj1', tolerance=1e-6):
 #def particle_vis(input_data_ps, filename):
 #def picker(input_object, indices):
 #def reflector(input_object, plane_normal, plane_location):
@@ -88,7 +88,7 @@ for i in range(unit_cells_x):
 
     new_object = translator(old_object, tvector)
 
-    remaining_object = overlap_eleminator(old_object, new_object, delete_from='input_object_2',   tolerance=0.1)
+    remaining_object = overlap_eliminator(old_object, new_object, delete_from='input_object_2',   tolerance=0.1)
     old_object = new_object
     basis_object_2.extend(remaining_object[1])
     
@@ -126,7 +126,7 @@ for i in range(unit_cells_y):
     
     new_object = translator(old_object, tvector)
 
-    remaining_object = overlap_eleminator(
+    remaining_object = overlap_eliminator(
         old_object, new_object,
         delete_from='input_object_2',
         tolerance=0.1
@@ -193,8 +193,25 @@ new_obj = assign_group_ids(cnt, group_size, current_id, id_index)
 cnt = new_obj
 bond_length =  1.42 
 tolerance  = 0.2 
+
+
+
 build_topology(cnt, bond_length, tolerance, id_index=None, coord_indices=(0,1,2), export_base="cnt_full_topology", many_body=False)
 
 size  = get_object_size(cnt, coord_indices=(0,1,2))
-
 print (size)
+
+
+current_id = 1
+group_size = len(basis_object)
+remove_existing_trailing_id=True
+id_index = None
+new_obj = assign_group_ids(basis_object_1, group_size, current_id, id_index)
+
+hexagon = new_obj
+bond_length =  1.42 
+tolerance  = 0.2 
+
+build_topology(hexagon, bond_length, tolerance, id_index=None, coord_indices=(0,1,2), export_base="hexagon_full_topology", many_body=False)
+
+

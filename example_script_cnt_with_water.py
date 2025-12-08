@@ -11,7 +11,7 @@ from periodic_object_creator.filter_broken_mol_mod import filter_broken_group
 from periodic_object_creator.so_cm_calculator_mod import cm_calculator
 from periodic_object_creator.so_elements_picker_mod import elements_picker
 from periodic_object_creator.so_inverter_mod import inverter
-from periodic_object_creator.so_overlap_eleminator_mod import overlap_eleminator
+from periodic_object_creator.so_overlap_eliminator_mod import overlap_eliminator
 from periodic_object_creator.so_reflector_mod import reflector
 from periodic_object_creator.so_replicator_mod import replicator
 from periodic_object_creator.so_rotator_mod import rotator
@@ -25,9 +25,8 @@ from periodic_object_creator.vtk_particle_mod import particle_vis
 #def assign_group_ids(obj, group_size=3, start_id=1, id_index_in_element=None):
 #def export_xyz (cnt, "cord_cnt"):
 #def filter_broken_group(remaining_water_lattic, group_size, group_id_indices ):
-#def build_topology(input_object, bond_length, tolerance, id_index=None, coord_indices=(0,1,2), export_base="topology_data", many_body=True, id_body_index = 6):
 #def inverter(input_object, inversion_point):
-#def overlap_eleminator(input_object_1, input_object_2, delete_from='obj1', tolerance=1e-6):
+#def overlap_eliminator(input_object_1, input_object_2, delete_from='obj1', tolerance=1e-6):
 #def particle_vis(input_data_ps, filename):
 #def picker(input_object, indices):
 #def reflector(input_object, plane_normal, plane_location):
@@ -89,7 +88,7 @@ for i in range(unit_cells_x):
 
     new_object = translator(old_object, tvector)
 
-    remaining_object = overlap_eleminator(old_object, new_object, delete_from='input_object_2',   tolerance=0.1)
+    remaining_object = overlap_eliminator(old_object, new_object, delete_from='input_object_2',   tolerance=0.1)
     old_object = new_object
     basis_object_2.extend(remaining_object[1])
     
@@ -127,7 +126,7 @@ for i in range(unit_cells_y):
     
     new_object = translator(old_object, tvector)
 
-    remaining_object = overlap_eleminator(
+    remaining_object = overlap_eliminator(
         old_object, new_object,
         delete_from='input_object_2',
         tolerance=0.1
@@ -174,6 +173,7 @@ cnt  =  wrapper_cylindrical(basis_object_5, cylinder_radius, object_size)
 
 current_id = 1
 group_size = len(basis_object)
+remove_existing_trailing_id=True
 id_index = None
 new_obj = assign_group_ids(cnt, group_size, current_id, id_index)
 
@@ -253,6 +253,7 @@ dispersed_cnt =  translator(cnt_new, new_tvector)
 # giving unique id to each basis in the object
 current_id = 1
 group_size = len(basis)
+remove_existing_trailing_id=True
 id_index = None
 new_obj = assign_group_ids(water_lattic, group_size, current_id, id_index)   
 water_lattic =  new_obj
@@ -261,7 +262,7 @@ water_lattic =  new_obj
 
 # merging cnt with water and deleting water molecules which are overlapping with the cnt
 
-remaining_object = overlap_eleminator(
+remaining_object = overlap_eliminator(
         dispersed_cnt, water_lattic,
         delete_from='input_object_2',
         tolerance=1.0
