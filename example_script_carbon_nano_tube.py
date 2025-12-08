@@ -25,7 +25,7 @@ from periodic_object_creator.vtk_particle_mod import particle_vis
 #def export_xyz (cnt, "cord_cnt"):
 #def get_object_size(input_object, coord_indices=(0,1,2)):
 #def inverter(input_object, inversion_point):
-#def build_topology(cnt, bond_length, tolerance, id_index=None, coord_indices=(0,1,2), export_base="cnt_full_topology", many_body=True, id_body_index = 4):
+#def build_topology(input_object, bond_length, tolerance, id_index=None, coord_indices=(0,1,2), export_base="topology_data", many_body=True, id_body_index = 6):
 #def overlap_eleminator(input_object_1, input_object_2, delete_from='obj1', tolerance=1e-6):
 #def particle_vis(input_data_ps, filename):
 #def picker(input_object, indices):
@@ -187,7 +187,6 @@ export_xyz (cnt, "cord_cnt")
 
 current_id = 1
 group_size = len(basis_object)
-remove_existing_trailing_id=True
 id_index = None
 new_obj = assign_group_ids(cnt, group_size, current_id, id_index)
 

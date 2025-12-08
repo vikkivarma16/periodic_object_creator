@@ -25,7 +25,7 @@ from periodic_object_creator.vtk_particle_mod import particle_vis
 #def assign_group_ids(obj, group_size=3, start_id=1, id_index_in_element=None):
 #def export_xyz (cnt, "cord_cnt"):
 #def filter_broken_group(remaining_water_lattic, group_size, group_id_indices ):
-#def build_topology(cnt, bond_length, tolerance, id_index=None, coord_indices=(0,1,2), export_base="cnt_full_topology", many_body=True, id_body_index = 4):
+#def build_topology(input_object, bond_length, tolerance, id_index=None, coord_indices=(0,1,2), export_base="topology_data", many_body=True, id_body_index = 6):
 #def inverter(input_object, inversion_point):
 #def overlap_eleminator(input_object_1, input_object_2, delete_from='obj1', tolerance=1e-6):
 #def particle_vis(input_data_ps, filename):
@@ -174,7 +174,6 @@ cnt  =  wrapper_cylindrical(basis_object_5, cylinder_radius, object_size)
 
 current_id = 1
 group_size = len(basis_object)
-remove_existing_trailing_id=True
 id_index = None
 new_obj = assign_group_ids(cnt, group_size, current_id, id_index)
 
@@ -254,7 +253,6 @@ dispersed_cnt =  translator(cnt_new, new_tvector)
 # giving unique id to each basis in the object
 current_id = 1
 group_size = len(basis)
-remove_existing_trailing_id=True
 id_index = None
 new_obj = assign_group_ids(water_lattic, group_size, current_id, id_index)   
 water_lattic =  new_obj
