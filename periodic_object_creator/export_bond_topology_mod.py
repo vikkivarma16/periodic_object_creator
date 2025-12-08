@@ -2,20 +2,7 @@
 from math import sqrt
 from itertools import combinations
 from collections import defaultdict
-import ctypes
-import numpy as np
-from ctypes import c_double, c_int, POINTER
-import os
 
-# -------------------- Load C bond finder --------------------
-here = os.path.dirname(__file__)
-lib_path = os.path.join(here, "support_engine_bond_finder.so")
-lib = ctypes.CDLL(lib_path)
-
-lib.bond_finder_grid.argtypes = [
-    POINTER(c_double), c_int, c_double,
-    POINTER(c_int)
-]
 
 def _distance(p1, p2):
     dx = p1[0] - p2[0]
@@ -36,59 +23,79 @@ def _canonical_improper(center, n1, n2, n3):
     return (center,) + tuple(sorted((n1, n2, n3)))
 
 # -------------------- Bond Finder using C-grid --------------------
-def find_bonds(input_object, bond_length, tolerance, many_body, id_index, id_body_index, coord_indices):
-    N = len(input_object)
-    coords = np.zeros((N,3), dtype=np.float64)
-    ids = []
-    body = np.zeros(N, dtype=np.int32)
-    positions = {}
+import numpy as np
+from ctypes import c_double, c_int, POINTER, cdll
+from collections import defaultdict
+import os
+
+here = os.path.dirname(__file__)
+lib_path = os.path.join(here, "support_engine_overlap_finder.so")
+lib = cdll.LoadLibrary(lib_path)
+
+lib.bond_finder_grid.argtypes = [
+    POINTER(c_double), c_int, c_double,
+    POINTER(POINTER(c_int)), POINTER(c_int)
+]
+
+def find_bonds(input_object, bond_length, tolerance, many_body=False,
+               id_index=None, id_body_index=None, coord_indices=(0,1,2)):
 
     if id_index is None:
         id_index = len(input_object[0])-1
 
+    N = len(input_object)
+    coords = np.zeros((N, 3), dtype=np.float64)
+    ids = []
+    positions = {}
+    body = {}
+
     for idx, atom in enumerate(input_object):
         rec = list(atom)
         aid = rec[id_index]
-        x,y,z = rec[coord_indices[0]], rec[coord_indices[1]], rec[coord_indices[2]]
+        x, y, z = rec[coord_indices[0]], rec[coord_indices[1]], rec[coord_indices[2]]
         coords[idx,:] = [float(x), float(y), float(z)]
-        ids.append(aid)
         positions[aid] = (float(x), float(y), float(z))
+        ids.append(aid)
         if many_body:
             if id_body_index is None:
-                raise ValueError("many_body=True requires id_body_index.")
-            body[idx] = int(rec[id_body_index])
+                raise ValueError("many_body=True requires id_body_index")
+            body[aid] = rec[id_body_index]
         else:
-            body[idx] = 1
+            body[aid] = 1
 
-    # Allocate neighbor lists
-    neighbor_counts = np.zeros(N, dtype=np.int32)
-    neighbor_list = [np.zeros(N, dtype=np.int32) for _ in range(20)]  # Max N per atom (can be optimized)
-    ptr_list = (ctypes.POINTER(ctypes.c_int) * N)()
+    # Allocate neighbor buffers
+    max_neighbors = 16
+    neighbor_array = (POINTER(c_int) * N)()
+    neighbor_count = (c_int * N)()
+    temp_buffers = []
     for i in range(N):
-        ptr_list[i] = neighbor_list[i].ctypes.data_as(ctypes.POINTER(ctypes.c_int))
+        buf = (c_int * max_neighbors)()
+        neighbor_array[i] = buf
+        temp_buffers.append(buf)
 
     lib.bond_finder_grid(
         coords.ctypes.data_as(POINTER(c_double)),
         N,
-        c_double(bond_length+tolerance),
-        body.ctypes.data_as(POINTER(c_int)),
-        neighbor_counts.ctypes.data_as(POINTER(c_int)),
-        ptr_list
+        c_double(bond_length + tolerance),
+        neighbor_array,
+        neighbor_count
     )
 
-    # Build Python bonds and neighbors
-    bonds = set()
+    # Convert to Python structures, respecting body IDs
     neighbors = defaultdict(list)
+    bonds = set()
     for i in range(N):
-        for j_idx in range(neighbor_counts[i]):
-            j = neighbor_list[i][j_idx]
-            if j > i:
-                b = _canonical_bond(ids[i], ids[j])
-                bonds.add(b)
-                neighbors[ids[i]].append(ids[j])
-                neighbors[ids[j]].append(ids[i])
+        aid = ids[i]
+        for jidx in range(neighbor_count[i]):
+            j = neighbor_array[i][jidx]
+            ajd = ids[j]
+            if body[aid] != body[ajd]:
+                continue
+            b = tuple(sorted((aid, ajd)))
+            bonds.add(b)
+            neighbors[aid].append(ajd)
 
-    return bonds, neighbors, positions, {ids[i]: body[i] for i in range(N)}
+    return bonds, neighbors, positions, body
 
 
 # -------------------- Rest of topology builder --------------------
