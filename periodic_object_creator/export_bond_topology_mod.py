@@ -146,7 +146,7 @@ def export_topology_text(filename_base, bonds, angles, dihedrals, impropers, pos
         fh.write(f"TOTAL_IMPROPERS: {len(impropers)}\n")
 
         fh.write("\nBONDS (# id1 id2 body | coords1 | coords2)\n\n")
-        for i, (a1, a2) in enumerate(sorted(bonds), 1):
+        for i, (a1, a2) in enumerate(bonds, 1):
             x1, y1, z1 = positions[a1]
             x2, y2, z2 = positions[a2]
             fh.write(f"{i}   {a1} {a2}   {body[a1]}    "
@@ -154,7 +154,7 @@ def export_topology_text(filename_base, bonds, angles, dihedrals, impropers, pos
                      f"{x2:.6f} {y2:.6f} {z2:.6f}\n")
 
         fh.write("\nANGLES (# A B C body | coordsA | coordsB | coordsC)\n\n")
-        for i, (A, B, C) in enumerate(build_angles(bonds, neighbors), 1):
+        for i, (A, B, C) in enumerate(angles, 1):
             xA, yA, zA = positions[A]
             xB, yB, zB = positions[B]
             xC, yC, zC = positions[C]
@@ -164,7 +164,7 @@ def export_topology_text(filename_base, bonds, angles, dihedrals, impropers, pos
                      f"{xC:.6f} {yC:.6f} {zC:.6f}\n")
 
         fh.write("\nDIHEDRALS (# A B C D body | coords...)\n\n")
-        for i, (A, B, C, D) in enumerate(build_dihedrals(bonds, neighbors), 1):
+        for i, (A, B, C, D) in enumerate(dihedrals, 1 ):
             xA, yA, zA = positions[A]
             xB, yB, zB = positions[B]
             xC, yC, zC = positions[C]
@@ -176,7 +176,7 @@ def export_topology_text(filename_base, bonds, angles, dihedrals, impropers, pos
                      f"{xD:.6f} {yD:.6f} {zD:.6f}\n")
 
         fh.write("\nIMPROPERS (# n1 center n2 n3 body | coords...)\n\n")
-        for i, (center, n1, n2, n3) in enumerate(build_impropers(neighbors), 1):
+        for i, (center, n1, n2, n3) in enumerate(impropers, 1):
             xC, yC, zC = positions[center]
             x1, y1, z1 = positions[n1]
             x2, y2, z2 = positions[n2]
