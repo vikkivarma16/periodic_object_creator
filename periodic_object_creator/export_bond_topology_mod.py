@@ -37,52 +37,59 @@ def _canonical_improper(center, n1, n2, n3):
 
 # -------------------- Bond Finder using C-grid --------------------
 def find_bonds(input_object, bond_length, tolerance, many_body, id_index, id_body_index, coord_indices):
-    if id_index is None:
-        id_index = len(input_object[0]) - 1
-
     N = len(input_object)
-    coords = np.zeros((N, 3), dtype=np.float64)
+    coords = np.zeros((N,3), dtype=np.float64)
     ids = []
+    body = np.zeros(N, dtype=np.int32)
     positions = {}
-    body = {}
+
+    if id_index is None:
+        id_index = len(input_object[0])-1
 
     for idx, atom in enumerate(input_object):
         rec = list(atom)
         aid = rec[id_index]
-        x, y, z = rec[coord_indices[0]], rec[coord_indices[1]], rec[coord_indices[2]]
-        coords[idx, :] = [float(x), float(y), float(z)]
-        positions[aid] = (float(x), float(y), float(z))
+        x,y,z = rec[coord_indices[0]], rec[coord_indices[1]], rec[coord_indices[2]]
+        coords[idx,:] = [float(x), float(y), float(z)]
         ids.append(aid)
+        positions[aid] = (float(x), float(y), float(z))
         if many_body:
             if id_body_index is None:
                 raise ValueError("many_body=True requires id_body_index.")
-            body[aid] = rec[id_body_index]
+            body[idx] = int(rec[id_body_index])
         else:
-            body[aid] = 1
+            body[idx] = 1
 
-    neighbor_mask = np.zeros(N*N, dtype=np.int32)
+    # Allocate neighbor lists
+    neighbor_counts = np.zeros(N, dtype=np.int32)
+    neighbor_list = [np.zeros(N, dtype=np.int32) for _ in range(N)]  # Max N per atom (can be optimized)
+    ptr_list = (ctypes.POINTER(ctypes.c_int) * N)()
+    for i in range(N):
+        ptr_list[i] = neighbor_list[i].ctypes.data_as(ctypes.POINTER(ctypes.c_int))
 
-    # Call C bond finder
     lib.bond_finder_grid(
-        coords.ctypes.data_as(POINTER(c_double)), N,
-        c_double(bond_length + tolerance),
-        neighbor_mask.ctypes.data_as(POINTER(c_int))
+        coords.ctypes.data_as(POINTER(c_double)),
+        N,
+        c_double(bond_length+tolerance),
+        body.ctypes.data_as(POINTER(c_int)),
+        neighbor_counts.ctypes.data_as(POINTER(c_int)),
+        ptr_list
     )
 
+    # Build Python bonds and neighbors
     bonds = set()
     neighbors = defaultdict(list)
-
     for i in range(N):
-        for j in range(i+1, N):
-            if body[ids[i]] != body[ids[j]]:
-                continue
-            if neighbor_mask[i*N+j]:
+        for j_idx in range(neighbor_counts[i]):
+            j = neighbor_list[i][j_idx]
+            if j > i:
                 b = _canonical_bond(ids[i], ids[j])
                 bonds.add(b)
-                neighbors[b[0]].append(b[1])
-                neighbors[b[1]].append(b[0])
+                neighbors[ids[i]].append(ids[j])
+                neighbors[ids[j]].append(ids[i])
 
-    return bonds, neighbors, positions, body
+    return bonds, neighbors, positions, {ids[i]: body[i] for i in range(N)}
+
 
 # -------------------- Rest of topology builder --------------------
 def build_angles(bonds, neighbors):
