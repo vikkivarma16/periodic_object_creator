@@ -1,15 +1,12 @@
-# Updated topology_builder.py with body index export, element counts, and C-grid bond finder
+# topology_builder.py
 from math import sqrt
 from itertools import combinations
 from collections import defaultdict
+import numpy as np
+from ctypes import c_double, c_int, POINTER, cdll
+import os
 
-
-def _distance(p1, p2):
-    dx = p1[0] - p2[0]
-    dy = p1[1] - p2[1]
-    dz = p1[2] - p2[2]
-    return sqrt(dx*dx + dy*dy + dz*dz)
-
+# -------------------- Canonical functions --------------------
 def _canonical_bond(a, b):
     return tuple(sorted((a, b)))
 
@@ -22,21 +19,27 @@ def _canonical_dihedral(a, b, c, d):
 def _canonical_improper(center, n1, n2, n3):
     return (center,) + tuple(sorted((n1, n2, n3)))
 
-# -------------------- Bond Finder using C-grid --------------------
-import numpy as np
-from ctypes import c_double, c_int, POINTER, cdll
-from collections import defaultdict
-import os
+# -------------------- Distance --------------------
+def _distance(p1, p2):
+    dx = p1[0] - p2[0]
+    dy = p1[1] - p2[1]
+    dz = p1[2] - p2[2]
+    return sqrt(dx*dx + dy*dy + dz*dz)
 
+# -------------------- Load C bond finder --------------------
 here = os.path.dirname(__file__)
 lib_path = os.path.join(here, "support_engine_bond_finder.so")
 lib = cdll.LoadLibrary(lib_path)
 
 lib.bond_finder_grid.argtypes = [
-    POINTER(c_double), c_int, c_double,
-    POINTER(POINTER(c_int)), POINTER(c_int)
+    POINTER(c_double),  # coords N×3
+    c_int,              # N atoms
+    c_double,           # tolerance (bond length + tolerance)
+    POINTER(POINTER(c_int)),  # neighbor arrays
+    POINTER(c_int)            # neighbor counts
 ]
 
+# -------------------- Find bonds --------------------
 def find_bonds(input_object, bond_length, tolerance, many_body=False,
                id_index=None, id_body_index=None, coord_indices=(0,1,2)):
 
@@ -49,6 +52,7 @@ def find_bonds(input_object, bond_length, tolerance, many_body=False,
     positions = {}
     body = {}
 
+    # Fill coordinates, IDs, bodies
     for idx, atom in enumerate(input_object):
         rec = list(atom)
         aid = rec[id_index]
@@ -63,8 +67,8 @@ def find_bonds(input_object, bond_length, tolerance, many_body=False,
         else:
             body[aid] = 1
 
-    # Allocate neighbor buffers
-    max_neighbors = 16
+    # Prepare neighbor arrays for C-grid
+    max_neighbors = 16  # adjust if needed
     neighbor_array = (POINTER(c_int) * N)()
     neighbor_count = (c_int * N)()
     temp_buffers = []
@@ -73,6 +77,7 @@ def find_bonds(input_object, bond_length, tolerance, many_body=False,
         neighbor_array[i] = buf
         temp_buffers.append(buf)
 
+    # Call C bond finder
     lib.bond_finder_grid(
         coords.ctypes.data_as(POINTER(c_double)),
         N,
@@ -81,9 +86,9 @@ def find_bonds(input_object, bond_length, tolerance, many_body=False,
         neighbor_count
     )
 
-    # Convert to Python structures, respecting body IDs
-    neighbors = defaultdict(list)
+    # Convert C neighbor arrays to Python structures
     bonds = set()
+    neighbors = defaultdict(list)
     for i in range(N):
         aid = ids[i]
         for jidx in range(neighbor_count[i]):
@@ -91,14 +96,13 @@ def find_bonds(input_object, bond_length, tolerance, many_body=False,
             ajd = ids[j]
             if body[aid] != body[ajd]:
                 continue
-            b = tuple(sorted((aid, ajd)))
+            b = _canonical_bond(aid, ajd)
             bonds.add(b)
             neighbors[aid].append(ajd)
 
     return bonds, neighbors, positions, body
 
-
-# -------------------- Rest of topology builder --------------------
+# -------------------- Angles/Dihedrals/Impropers --------------------
 def build_angles(bonds, neighbors):
     angle_set = set()
     for center, neighs in neighbors.items():
@@ -128,71 +132,63 @@ def build_impropers(neighbors):
             improper_set.add(_canonical_improper(center, *trio))
     return [list(x) for x in sorted(improper_set)]
 
+# -------------------- Export topology --------------------
 def export_topology_text(filename_base, bonds, angles, dihedrals, impropers, positions, body):
     fname = f"{filename_base}.txt"
     total_bodies = len(set(body.values()))
     with open(fname, "w") as fh:
-        fh.write("SUMMARY COUNTS \n")
-        fh.write(f"TOTAL_ELEMENTS: {len(positions)}  \n")
+        fh.write("SUMMARY COUNTS\n")
+        fh.write(f"TOTAL_ELEMENTS: {len(positions)}\n")
         fh.write(f"TOTAL_BODIES: {total_bodies}\n")
-        fh.write(f"TOTAL_BONDS: {len(bonds)}  \n")
-        fh.write(f"TOTAL_ANGLES: {len(angles)}  \n")
-        fh.write(f"TOTAL_DIHEDRALS: {len(dihedrals)} \n")
-        fh.write(f"TOTAL_IMPROPERS: {len(impropers)} \n")
+        fh.write(f"TOTAL_BONDS: {len(bonds)}\n")
+        fh.write(f"TOTAL_ANGLES: {len(angles)}\n")
+        fh.write(f"TOTAL_DIHEDRALS: {len(dihedrals)}\n")
+        fh.write(f"TOTAL_IMPROPERS: {len(impropers)}\n")
 
         fh.write("\nBONDS (# id1 id2 body | coords1 | coords2)\n\n")
-        i = 1
-        for a1, a2 in bonds:
+        for i, (a1, a2) in enumerate(sorted(bonds), 1):
             x1, y1, z1 = positions[a1]
             x2, y2, z2 = positions[a2]
             fh.write(f"{i}   {a1} {a2}   {body[a1]}    "
-                     f"{x1:.6f}  {y1:.6f}  {z1:.6f}    "
-                     f"{x2:.6f}  {y2:.6f}  {z2:.6f}\n")
-            i += 1
+                     f"{x1:.6f} {y1:.6f} {z1:.6f}    "
+                     f"{x2:.6f} {y2:.6f} {z2:.6f}\n")
 
         fh.write("\nANGLES (# A B C body | coordsA | coordsB | coordsC)\n\n")
-        i = 1
-        for A, B, C in build_angles(bonds, defaultdict(list, {k:v[:] for k,v in positions.items()})):
+        for i, (A, B, C) in enumerate(build_angles(bonds, neighbors), 1):
             xA, yA, zA = positions[A]
             xB, yB, zB = positions[B]
             xC, yC, zC = positions[C]
             fh.write(f"{i}   {A} {B} {C}   {body[B]}    "
-                     f"{xA:.6f}  {yA:.6f}  {zA:.6f}    "
-                     f"{xB:.6f}  {yB:.6f}  {zB:.6f}    "
-                     f"{xC:.6f}  {yC:.6f}  {zC:.6f}\n")
-            i += 1
+                     f"{xA:.6f} {yA:.6f} {zA:.6f}    "
+                     f"{xB:.6f} {yB:.6f} {zB:.6f}    "
+                     f"{xC:.6f} {yC:.6f} {zC:.6f}\n")
 
         fh.write("\nDIHEDRALS (# A B C D body | coords...)\n\n")
-        i=1
-        for A, B, C, D in dihedrals:
+        for i, (A, B, C, D) in enumerate(build_dihedrals(bonds, neighbors), 1):
             xA, yA, zA = positions[A]
             xB, yB, zB = positions[B]
             xC, yC, zC = positions[C]
             xD, yD, zD = positions[D]
             fh.write(f"{i}   {A} {B} {C} {D}   {body[B]}    "
-                     f"{xA:.6f}  {yA:.6f}  {zA:.6f}    "
-                     f"{xB:.6f}  {yB:.6f}  {zB:.6f}    "
-                     f"{xC:.6f}  {yC:.6f}  {zC:.6f}    "
-                     f"{xD:.6f}  {yD:.6f}  {zD:.6f}\n")
-            i = i+1
+                     f"{xA:.6f} {yA:.6f} {zA:.6f}    "
+                     f"{xB:.6f} {yB:.6f} {zB:.6f}    "
+                     f"{xC:.6f} {yC:.6f} {zC:.6f}    "
+                     f"{xD:.6f} {yD:.6f} {zD:.6f}\n")
 
         fh.write("\nIMPROPERS (# n1 center n2 n3 body | coords...)\n\n")
-        i=1
-        for center, n1, n2, n3 in impropers:
+        for i, (center, n1, n2, n3) in enumerate(build_impropers(neighbors), 1):
             xC, yC, zC = positions[center]
             x1, y1, z1 = positions[n1]
             x2, y2, z2 = positions[n2]
             x3, y3, z3 = positions[n3]
             fh.write(f"{i}   {n1} {center} {n2} {n3}   {body[center]}    "
-                     f"{x1:.6f}  {y1:.6f}  {z1:.6f}    "
-                     f"{xC:.6f}  {yC:.6f}  {zC:.6f}    "
-                     f"{x2:.6f}  {y2:.6f}  {z2:.6f}    "
-                     f"{x3:.6f}  {y3:.6f}  {z3:.6f}\n")
-            i = i+1
-
-
+                     f"{x1:.6f} {y1:.6f} {z1:.6f}    "
+                     f"{xC:.6f} {yC:.6f} {zC:.6f}    "
+                     f"{x2:.6f} {y2:.6f} {z2:.6f}    "
+                     f"{x3:.6f} {y3:.6f} {z3:.6f}\n")
     return fname
 
+# -------------------- Build full topology --------------------
 def build_topology(input_object, bond_length, tolerance, id_index=None,
                    coord_indices=(0, 1, 2), export_base="topology",
                    many_body=False, id_body_index=None):
@@ -225,3 +221,4 @@ def build_topology(input_object, bond_length, tolerance, id_index=None,
         "body": body,
         "export_file": export_file,
     }
+
