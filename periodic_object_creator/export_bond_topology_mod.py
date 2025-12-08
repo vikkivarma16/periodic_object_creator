@@ -62,7 +62,7 @@ def find_bonds(input_object, bond_length, tolerance, many_body, id_index, id_bod
 
     # Allocate neighbor lists
     neighbor_counts = np.zeros(N, dtype=np.int32)
-    neighbor_list = [np.zeros(N, dtype=np.int32) for _ in range(N)]  # Max N per atom (can be optimized)
+    neighbor_list = [np.zeros(N, dtype=np.int32) for _ in range(20)]  # Max N per atom (can be optimized)
     ptr_list = (ctypes.POINTER(ctypes.c_int) * N)()
     for i in range(N):
         ptr_list[i] = neighbor_list[i].ctypes.data_as(ctypes.POINTER(ctypes.c_int))
