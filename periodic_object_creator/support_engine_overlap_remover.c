@@ -134,6 +134,16 @@ void relax_spherical_particles(
         int ix = (int)(coords[3*i]   / cell_size);
         int iy = (int)(coords[3*i+1] / cell_size);
         int iz = (int)(coords[3*i+2] / cell_size);
+        if(ix >= nx) ix = nx - 1;
+        if(iy >= ny) iy = ny - 1;
+        if(iz >= nz) iz = nz - 1;
+        
+        if(ix < 0) ix = 0;
+        if(iy < 0) iy = 0;
+        if(iz < 0) iz = 0;
+
+        
+        
         int h = cell_hash(ix,iy,iz,nx,ny,nz);
         p_cell[i] = h;
         if(grid[h].count < grid[h].max_count)
@@ -256,6 +266,11 @@ void relax_spherical_particles(
                 if(ix >= nx) ix = nx - 1;
                 if(iy >= ny) iy = ny - 1;
                 if(iz >= nz) iz = nz - 1;
+                
+                if(ix < 0) ix = 0;
+                if(iy < 0) iy = 0;
+                if(iz < 0) iz = 0;
+
 
                 
 
@@ -350,6 +365,7 @@ void relax_spherical_particles(
             }
         }
 
+      
 
         if(iter % grid_shifting_rate == 0){   // every 10 iterations
             int dx = (rand() % 3) - 1;
@@ -413,7 +429,7 @@ void relax_spherical_particles(
             else if(i == pos) printf(">");
             else printf(" ");
         }
-        printf("] %3.0f%% Overlap-free: %d/%d", progress*100.0, n_mol - overlap_count, n_mol);
+        printf("] %3.0f%% Overlap-free: %d/%d, iteration %d ", progress*100.0, n_mol - overlap_count, n_mol, iter);
         fflush(stdout);
         }
 

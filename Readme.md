@@ -211,22 +211,22 @@ Efficiently removes **overlaps between molecules** in a 3D periodic simulation b
 
 #### Parameters:
 
-| Parameter                | Type                          | Description                                                                       |
-| ------------------------ | ----------------------------- | --------------------------------------------------------------------------------- |
-| `input_object`           | list of lists                 | Each particle record should contain coordinates, molecule ID, particle type, etc. |
-| `molid_idx`              | int                           | Index in each particle record for the **molecule ID**.                            |
-| `particle_idx`           | int                           | Index for the particle index (can be unused).                                     |
-| `mol_type_idx`           | int                           | Index for molecule type (optional, currently not used).                           |
-| `particle_type_idx`      | int                           | Index for the particle type in each record.                                       |
-| `sigma_matrix`           | 2D list or numpy array        | Interaction radii between particle types (`sigma[i][j]`).                         |
-| `moving_mol_id`          | list of ints                  | List of molecule IDs that are allowed to move.                                    |
-| `box`                    | list of 3 floats              | Simulation box dimensions `[Lx, Ly, Lz]`.                                         |
-| `cell_size`              | float                         | Size of each spatial grid cell. Typically `~1.5 * max(sigma)`.                    |
-| `iter_max`               | int                           | Maximum number of iterations for overlap relaxation.                              |
-| `translation_step`       | float                         | Maximum translation step size for molecules.                                      |
-| `rotation_step`          | float                         | Maximum rotation angle (radians) for molecules.                                   |
-| `max_particles_per_cell` | int, optional, default=64     | Maximum number of particles per spatial cell.                                     |
-| `grid_shifting_rate`     | int, optional, default=100000 | Number of iterations between random grid shifts to avoid periodic artifacts.      |
+| Parameter                | Type                          | Description                                                                                                              |
+| ------------------------ | ----------------------------- | ---------------------------------------------------------------------------------                                        |
+| `input_object`           | list of lists                 | Each particle record should contain coordinates, molecule ID, particle type, etc.                                        |
+| `molid_idx`              | int                           | Index in each particle record for the **molecule ID**.                                                                   |
+| `particle_idx`           | int                           | Index for the particle index (can be unused).                                                                            |
+| `mol_type_idx`           | int                           | Index for molecule type (optional, currently not used).                                                                  |
+| `particle_type_idx`      | int                           | Index for the particle type in each record.                                                                              |
+| `sigma_matrix`           | 2D list or numpy array        | Interaction radii between particle types (`sigma[i][j]`).                                                                |
+| `moving_mol_id`          | list of ints                  | List of molecule IDs that are allowed to move.                                                                           |
+| `box`                    | list of 3 floats              | Simulation box dimensions `[Lx, Ly, Lz]`.                                                                                |
+| `cell_size`              | float                         | Size of each spatial grid cell. Typically `~1.5 * max(sigma)`such that cell_size*N_cell = box_length.                    |
+| `iter_max`               | int                           | Maximum number of iterations for overlap relaxation.                                                                     |
+| `translation_step`       | float                         | Maximum translation step size for molecules.                                                                             |
+| `rotation_step`          | float                         | Maximum rotation angle (radians) for molecules.                                                                          |
+| `max_particles_per_cell` | int, optional, default=64     | Maximum number of particles per spatial cell.                                                                            |
+| `grid_shifting_rate`     | int, optional, default=100000 | Number of iterations between random grid shifts to avoid periodic artifacts.                                             |
 
 
 #### Returns:

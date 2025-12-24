@@ -125,7 +125,7 @@ new_obj = assign_group_ids(water_lattic, group_size, current_id, id_index)
 water_lattic =  new_obj
 
 
-random_object =  randomize_positions (water_lattic, idx  =  7,  box  = box_size,  seed=3840983, rotation =  False)
+random_object =  randomize_positions (water_lattic, idx  =  7,  box  = box_size,  seed=3840983, rotation =  True)
 
 
 particle_vis(random_object, "water_random")
@@ -153,14 +153,15 @@ for i in range(len(input_object)):
     
 box  =  box_size
 
-cell_size =  1.0
+cell_size =  (100.0/95.0)
 
-iter_max  =  1000000
+
+iter_max  =  10000000
 translation_step  =  0.05
 rotation_step  =  0.01
 
 
-water_final = overlap_remover(input_object, mol_idx, particle_idx, mol_type_idx, particle_type_idx, sigma_matrix, moving_mol_id, box, cell_size, iter_max, translation_step, rotation_step)
+water_final = overlap_remover(input_object, mol_idx, particle_idx, mol_type_idx, particle_type_idx, sigma_matrix, moving_mol_id, box, cell_size, iter_max, translation_step, rotation_step, grid_shifting_rate=100)
 
 
 
