@@ -186,6 +186,118 @@ print(topology["impropers"])
 
 ---
 
+
+
+
+
+### `overlap_remover(input_object, molid_idx, particle_idx, mol_type_idx, particle_type_idx, sigma_matrix, moving_mol_id, box, cell_size, iter_max, translation_step, rotation_step, max_particles_per_cell=64, grid_shifting_rate=100000)`
+
+Efficiently removes **overlaps between molecules** in a 3D periodic simulation box using a **grid-based relaxation algorithm** implemented in C with Python bindings.
+
+
+#### Features:
+
+* Reorders particles so that molecules are **contiguous** in memory for efficient processing.
+* Accepts **arbitrary molecule IDs and particle types**.
+* Uses **sigma_matrix** to define effective interaction radii between particle types.
+* Moves only a subset of molecules specified in `moving_mol_id`.
+* Performs **translation and rotation moves** to resolve overlaps.
+* Supports **periodic boundary conditions** with minimum image convention.
+* Uses a **grid-based spatial decomposition** to accelerate overlap detection.
+* Automatically handles **cell overflows** with user-defined limits (`max_particles_per_cell`).
+* Optionally applies **grid shifting** to prevent artifacts (`grid_shifting_rate`).
+* Returns **updated coordinates** after the relaxation.
+
+
+#### Parameters:
+
+| Parameter                | Type                          | Description                                                                       |
+| ------------------------ | ----------------------------- | --------------------------------------------------------------------------------- |
+| `input_object`           | list of lists                 | Each particle record should contain coordinates, molecule ID, particle type, etc. |
+| `molid_idx`              | int                           | Index in each particle record for the **molecule ID**.                            |
+| `particle_idx`           | int                           | Index for the particle index (can be unused).                                     |
+| `mol_type_idx`           | int                           | Index for molecule type (optional, currently not used).                           |
+| `particle_type_idx`      | int                           | Index for the particle type in each record.                                       |
+| `sigma_matrix`           | 2D list or numpy array        | Interaction radii between particle types (`sigma[i][j]`).                         |
+| `moving_mol_id`          | list of ints                  | List of molecule IDs that are allowed to move.                                    |
+| `box`                    | list of 3 floats              | Simulation box dimensions `[Lx, Ly, Lz]`.                                         |
+| `cell_size`              | float                         | Size of each spatial grid cell. Typically `~1.5 * max(sigma)`.                    |
+| `iter_max`               | int                           | Maximum number of iterations for overlap relaxation.                              |
+| `translation_step`       | float                         | Maximum translation step size for molecules.                                      |
+| `rotation_step`          | float                         | Maximum rotation angle (radians) for molecules.                                   |
+| `max_particles_per_cell` | int, optional, default=64     | Maximum number of particles per spatial cell.                                     |
+| `grid_shifting_rate`     | int, optional, default=100000 | Number of iterations between random grid shifts to avoid periodic artifacts.      |
+
+
+#### Returns:
+
+* Updated `input_object` with **coordinates modified** to resolve overlaps.
+* Molecules remain contiguous and overlap-free (up to convergence criteria).
+
+
+#### Usage Example:
+
+```python
+from overlap_remover_wrapper import overlap_remover
+
+# Example system: 2 water molecules
+particles = [
+    [0.0, 0.0, 0.0, 1, 1],   # O of mol 1
+    [0.96, 0.0, 0.0, 1, 2],  # H of mol 1
+    [2.0, 2.0, 2.0, 2, 1],   # O of mol 2
+    [2.96, 2.0, 2.0, 2, 2],  # H of mol 2
+]
+
+sigma = [[1.0, 1.0], [1.0, 1.0]]  # example sigma, replace with real values
+
+# Remove overlaps for all molecules
+updated_particles = overlap_remover(
+    input_object=particles,
+    molid_idx=3,
+    particle_idx=1,
+    mol_type_idx=0,
+    particle_type_idx=4,
+    sigma_matrix=sigma,
+    moving_mol_id=[1,2],
+    box=[5.0, 5.0, 5.0],
+    cell_size=1.5,
+    iter_max=1000,
+    translation_step=0.1,
+    rotation_step=0.05,
+    max_particles_per_cell=64,
+    grid_shifting_rate=100
+)
+
+print("Updated coordinates:")
+for p in updated_particles:
+    print(p[:3])
+```
+
+
+#### Implementation Notes:
+
+1. The **C core** (`support_engine_overlap_remover.so`) handles heavy computation for **speed and scalability**.
+2. **Periodic boundary conditions** are correctly handled using the **minimum image convention**.
+3. The wrapper automatically flattens the sigma matrix and ensures correct **particle type indexing**.
+4. The algorithm moves molecules randomly (translation/rotation) until **overlaps are resolved** or `iter_max` is reached.
+5. **Grid-based neighbor lists** make the computation scalable to large systems.
+6. Optional `max_particles_per_cell` prevents memory overflow in dense regions.
+7. **Grid shifting** avoids pathological overlap configurations in periodic systems.
+
+
+#### Recommended Workflow:
+
+1. Preprocess your particle data: **group molecules contiguously** in `input_object`.
+2. Provide **accurate `sigma_matrix`** for all particle types.
+3. Call `overlap_remover` with desired **translation and rotation steps**.
+4. Verify **final overlaps** by inspecting particle distances.
+5. Optionally repeat with smaller steps for **tight packing**.
+
+---
+
+
+
+
 #### `elements_picker(input_object, indices)`
 
 Selects and returns a subset of elements from the input object based on provided indices.  
@@ -431,6 +543,7 @@ from periodic_object_creator.so_cm_calculator_mod import cm_calculator
 from periodic_object_creator.so_elements_picker_mod import elements_picker
 from periodic_object_creator.so_inverter_mod import inverter
 from periodic_object_creator.so_overlap_eliminator_mod import overlap_eliminator
+from periodic_object_creator.so_overlap_remover_mod import  overlap_remover
 from periodic_object_creator.so_reflector_mod import reflector
 from periodic_object_creator.so_replicator_mod import replicator
 from periodic_object_creator.so_rotator_mod import rotator

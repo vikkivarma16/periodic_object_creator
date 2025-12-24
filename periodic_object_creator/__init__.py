@@ -9,6 +9,8 @@ from .so_cm_calculator_mod import *
 from .so_elements_picker_mod import *
 from .so_inverter_mod import *
 from .so_overlap_eliminator_mod import *
+from .so_overlap_remover_mod import *
+from .so_random_translator_mod import *
 from .so_reflector_mod import *
 from .so_replicator_mod import *
 from .so_rotator_mod import *
