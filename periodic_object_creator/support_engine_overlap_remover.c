@@ -226,12 +226,15 @@ void relax_spherical_particles(
             coords[3 * start + 2]
         };
 
-        for(int k = 0; k < cnt; k++){
+        for(int k = 1; k < cnt; k++){
             int i = start + k;
             coords[3*i]     = ref[0] + min_image(coords[3*i]     - ref[0], box[0]);
             coords[3*i + 1] = ref[1] + min_image(coords[3*i + 1] - ref[1], box[1]);
             coords[3*i + 2] = ref[2] + min_image(coords[3*i + 2] - ref[2], box[2]);
-            
+        }
+        
+        for(int k = 0; k < cnt; k++){
+            int i = start + k;
             mol_id_c[i] = m;
         }
 
@@ -251,6 +254,14 @@ void relax_spherical_particles(
         mol_com[m][0] = fmod(com[0] + box[0], box[0]);
         mol_com[m][1] = fmod(com[1] + box[1], box[1]);
         mol_com[m][2] = fmod(com[2] + box[2], box[2]);
+        
+        
+        for(int k = 0; k < cnt; k++){
+            int i = start + k;
+            coords[3*i] = fmod(coords[3*i] + box[0], box[0]);
+            coords[3*i+1] = fmod(coords[3*i+1] + box[0], box[0]);
+            coords[3*i+2] = fmod(coords[3*i+2] + box[0], box[0]);
+        }
 
       
         /* ---- restore original wrapped coordinates ---- */
@@ -268,8 +279,6 @@ void relax_spherical_particles(
   const int adapt_interval = 1000;   // how often to adapt
   const double acc_low  = 0.30;
   const double acc_high = 0.50;
-  step_trans = 0.5;
-  step_rot = 0.5;
 
     
     
