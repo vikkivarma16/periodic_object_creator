@@ -627,15 +627,15 @@ void relax_spherical_particles(
                     int old = p_cell[i], nw = new_cell[k];
                     if(old != nw){
                         // Remove i from old cell by shifting
-                        int *idx = grid[old].idx;
+                        int *idxx = grid[old].idx;
                         int n = grid[old].count;
                         
                         int found = 0;
                         for(j = 0; j < n; j++){
-                            if(idx[j] == i){
+                            if(idxx[j] == i){
                                 for(int tric = j; tric < n; tric++)
-                                    idx[tric] = idx[tric + 1];
-                                idx[n - 1] = -1;
+                                    idxx[tric] = idxx[tric + 1];
+                                idxx[n - 1] = -1;
                                 grid[old].count--;
                                 found = 1;
                                 break;
@@ -657,7 +657,7 @@ void relax_spherical_particles(
                             grid[nw].count++;
                         } else {
                             // handle overflow if needed
-                            printf("Warning: cell overflow: for max size cell  %d, cell size   %lf  max cell number in the box %d %d %d\n", grid[nw].max_count, cell_size, nx, ny, nz);
+                            printf("\n\nWarning: cell overflow: for max size cell  %d, cell size   %lf  max cell number in the box %d %d %d\n", grid[nw].max_count, cell_size, nx, ny, nz);
                             
                             int x, y, z;
                             cell_unhash(nw, nx, ny, &x, &y, &z);
