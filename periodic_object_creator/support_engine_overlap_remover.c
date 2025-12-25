@@ -75,6 +75,18 @@ static inline int cell_hash(int x,int y,int z,int nx,int ny,int nz){
     return x + nx*(y + ny*z);
 }
 
+
+
+static inline void cell_unhash(
+    int h, int nx, int ny,
+    int *x, int *y, int *z)
+{
+    *z = h / (nx * ny);
+    int rem = h % (nx * ny);
+    *y = rem / nx;
+    *x = rem % nx;
+}
+
 /* ============================================================
    Main routine
    ============================================================ */
@@ -243,7 +255,6 @@ void relax_spherical_particles(
   /* p_type = number of unique particle types */
   /* unique_types[new_id] -> original ID */
 
-  printf("Remapped particle types to 0..%d\n", p_type - 1);
 
     
     
@@ -647,7 +658,14 @@ void relax_spherical_particles(
                         } else {
                             // handle overflow if needed
                             printf("Warning: cell overflow: for max size cell  %d, cell size   %lf  max cell number in the box %d %d %d\n", grid[nw].max_count, cell_size, nx, ny, nz);
+                            
+                            int x, y, z;
+                            cell_unhash(nw, nx, ny, &x, &y, &z);
+                            printf("unhashed cell number is %d %d %d   \n", x, y , z);
+                            
                             printf("particles on the grid are : \n");
+                            
+                            
                             for(int tric = j; tric < grid[nw].max_count; tric++)
                             {
                                 printf("  %d      %d  \n  ", tric, grid[nw].idx[tric]);
