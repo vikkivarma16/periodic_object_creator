@@ -805,21 +805,71 @@ void relax_spherical_particles(
 
 
         if(iter % 100 == 0) { // update every trial step
-        int overlap_count = 0;
-        for(int m=0; m<n_mol; m++)
-            if(mol_overlap[m]) overlap_count++;
+              int overlap_count = 0;
+              for(int m=0; m<n_mol; m++)
+                  if(mol_overlap[m]) overlap_count++;
 
-        double progress = 1.0 - ((double)overlap_count / n_mol); // fraction of molecules resolved
-        int pos = (int)(bar_width * progress);
+              double progress = 1.0 - ((double)overlap_count / n_mol); // fraction of molecules resolved
+              int pos = (int)(bar_width * progress);
 
-        printf("\rOverlap progress: [");
-        for(int i=0; i<bar_width; i++){
-            if(i < pos) printf("=");
-            else if(i == pos) printf(">");
-            else printf(" ");
-        }
-        printf("] %3.0f%% Overlap-free: %d/%d, iteration no: %d, with grid shifting interval: %d ", progress*100.0, n_mol - overlap_count, n_mol, iter, grid_shifting_rate);
-        fflush(stdout);
+              printf("\rOverlap progress: [");
+              for(int i=0; i<bar_width; i++){
+                  if(i < pos) printf("=");
+                  else if(i == pos) printf(">");
+                  else printf(" ");
+              }
+              printf("] %3.0f%% Overlap-free: %d/%d, iteration no: %d, with grid shifting interval: %d ", progress*100.0, n_mol - overlap_count, n_mol, iter, grid_shifting_rate);
+              fflush(stdout);
+              
+              /* ============================================================
+                 Cell efficiency histogram (particles per cell)
+                 ============================================================ */
+
+              {
+                  int bin_div = 10;   /* adjustable bin divisor */
+                  int max_occ = max_particles_per_cell;
+                  int n_bins = max_occ / bin_div + 1;
+
+                  int *hist = calloc(n_bins, sizeof(int));
+                  if(!hist){
+                      printf("Error allocating histogram\n");
+                      exit(1);
+                  }
+
+                  /* build histogram */
+                  for(int c = 0; c < nc; c++){
+                      int occ = grid[c].count;
+                      int bin = occ / bin_div;
+                      if(bin >= n_bins) bin = n_bins - 1;
+                      hist[bin]++;
+                  }
+
+                  /* file name includes iteration number */
+                  char fname[256];
+                  sprintf(fname, "cell_efficiency_histogram_%d.txt", iter);
+
+                  FILE *fh = fopen(fname, "w");
+                  if(!fh){
+                      printf("Error opening histogram file\n");
+                      free(hist);
+                      exit(1);
+                  }
+
+                  fprintf(fh, "# Cell efficiency histogram\n");
+                  fprintf(fh, "# Iteration: %d\n", iter);
+                  fprintf(fh, "# Bin_size: %d particles\n", bin_div);
+                  fprintf(fh, "# Columns: bin_start bin_end cell_count\n\n");
+
+                  for(int b = 0; b < n_bins; b++){
+                      int bin_start = b * bin_div;
+                      int bin_end   = bin_start + bin_div - 1;
+                      fprintf(fh, "%d %d %d\n", bin_start, bin_end, hist[b]);
+                  }
+
+                  fclose(fh);
+                  free(hist);
+              }
+
         }
 
 
