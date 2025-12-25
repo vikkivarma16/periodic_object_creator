@@ -647,9 +647,10 @@ void relax_spherical_particles(
                         } else {
                             // handle overflow if needed
                             printf("Warning: cell overflow: for max size cell  %d, cell size   %lf  max cell number in the box %d %d %d\n", grid[nw].max_count, cell_size, nx, ny, nz);
+                            printf("particles on the grid are : \n");
                             for(int tric = j; tric < grid[nw].max_count; tric++)
                             {
-                                printf("particles in the grid are %d   ", grid[nw].idx[tric]);
+                                printf("  %d      %d  \n  ", tric, grid[nw].idx[tric]);
                             }
                             
                             printf("\n");
