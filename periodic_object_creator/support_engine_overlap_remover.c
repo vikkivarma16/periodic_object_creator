@@ -113,6 +113,7 @@ void relax_spherical_particles(
     int nx = (int)(box[0]/cell_size);
     int ny = (int)(box[1]/cell_size);
     int nz = (int)(box[2]/cell_size);
+    cell_size =  box[0]/(float)nx;
     int nc = nx*ny*nz;
 
   
@@ -632,6 +633,8 @@ void relax_spherical_particles(
 
                         if(!found){
                             printf("ERROR: particle %d not found in old cell %d\n", i, old);
+                            exit(0);
+                            
                         }
 
                         
@@ -639,16 +642,19 @@ void relax_spherical_particles(
                         
                         // Add i to new cell
                         if(grid[nw].count < grid[nw].max_count){
-                            grid[nw].idx[grid[nw].count++] = i;
+                            grid[nw].idx[grid[nw].count] = i;
+                            grid[nw].count++;
                         } else {
                             // handle overflow if needed
-                            printf("Warning: cell overflow  %d \n", grid[nw].max_count);
+                            printf("Warning: cell overflow: for max size cell  %d, cell size   %lf  max cell number in the box %d %d %d\n", grid[nw].max_count, cell_size, nx, ny, nz);
                             for(int tric = j; tric < grid[nw].max_count; tric++)
                             {
                                 printf("particles in the grid are %d   ", grid[nw].idx[tric]);
                             }
                             
                             printf("\n");
+                            
+                            exit(0);
                             
                         }
                         // Update particle's current cell
