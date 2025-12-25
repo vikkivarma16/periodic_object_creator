@@ -671,7 +671,7 @@ void relax_spherical_particles(
                             
                             for(int tric = j; tric < grid[nw].max_count; tric++)
                             {
-                                printf("  %d      %d  \n  ", tric, grid[nw].idx[tric]);
+                                printf("  %d      %d    %lf    %lf    %lf \n  ", tric, grid[nw].idx[tric], coords[grid[nw].idx[tric]*3],  coords[grid[nw].idx[tric]*3+1],  coords[grid[nw].idx[tric]*3+2]);
                             }
                             
                             printf("\n");
