@@ -5,6 +5,10 @@
 #include <time.h>
 #include <stdio.h>
 #include <signal.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <errno.h>
+
 
 
 /* ============================================================
@@ -825,50 +829,66 @@ void relax_spherical_particles(
                  Cell efficiency histogram (particles per cell)
                  ============================================================ */
 
-              {
-                  int bin_div = 10;   /* adjustable bin divisor */
-                  int max_occ = max_particles_per_cell;
-                  int n_bins = max_occ / bin_div + 1;
+              /* ============================================================
+   Cell efficiency histogram (particles per cell)
+   Creates folder "cell_bin" if not present
+   ============================================================ */
 
-                  int *hist = calloc(n_bins, sizeof(int));
-                  if(!hist){
-                      printf("Error allocating histogram\n");
+              
+              /* ---------- create output directory ---------- */
+              const char *outdir = "cell_bin";
+              if (mkdir(outdir, 0755) != 0) {
+                  if (errno != EEXIST) {
+                      perror("mkdir cell_bin failed");
                       exit(1);
                   }
-
-                  /* build histogram */
-                  for(int c = 0; c < nc; c++){
-                      int occ = grid[c].count;
-                      int bin = occ / bin_div;
-                      if(bin >= n_bins) bin = n_bins - 1;
-                      hist[bin]++;
-                  }
-
-                  /* file name includes iteration number */
-                  char fname[256];
-                  sprintf(fname, "cell_efficiency_histogram_%d.txt", iter);
-
-                  FILE *fh = fopen(fname, "w");
-                  if(!fh){
-                      printf("Error opening histogram file\n");
-                      free(hist);
-                      exit(1);
-                  }
-
-                  fprintf(fh, "# Cell efficiency histogram\n");
-                  fprintf(fh, "# Iteration: %d\n", iter);
-                  fprintf(fh, "# Bin_size: %d particles\n", bin_div);
-                  fprintf(fh, "# Columns: bin_start bin_end cell_count\n\n");
-
-                  for(int b = 0; b < n_bins; b++){
-                      int bin_start = b * bin_div;
-                      int bin_end   = bin_start + bin_div - 1;
-                      fprintf(fh, "%d %d %d\n", bin_start, bin_end, hist[b]);
-                  }
-
-                  fclose(fh);
-                  free(hist);
+                  /* if EEXIST → directory already exists, OK */
               }
+
+              int bin_div = 10;   /* adjustable bin divisor */
+              int max_occ = max_particles_per_cell;
+              int n_bins = max_occ / bin_div + 1;
+
+              int *hist = calloc(n_bins, sizeof(int));
+              if(!hist){
+                  printf("Error allocating histogram\n");
+                  exit(1);
+              }
+
+              /* ---------- build histogram ---------- */
+              for(int c = 0; c < nc; c++){
+                  int occ = grid[c].count;
+                  int bin = occ / bin_div;
+                  if(bin >= n_bins) bin = n_bins - 1;
+                  hist[bin]++;
+              }
+
+              /* ---------- file name with iteration ---------- */
+              char fname[512];
+              sprintf(fname, "%s/cell_efficiency_histogram_%d.txt", outdir, iter);
+
+              FILE *fh = fopen(fname, "w");
+              if(!fh){
+                  printf("Error opening histogram file %s\n", fname);
+                  free(hist);
+                  exit(1);
+              }
+
+              fprintf(fh, "# Cell efficiency histogram\n");
+              fprintf(fh, "# Iteration: %d\n", iter);
+              fprintf(fh, "# Bin_size: %d particles\n", bin_div);
+              fprintf(fh, "# Columns: bin_start bin_end cell_count\n\n");
+
+              for(int b = 0; b < n_bins; b++){
+                  int bin_start = b * bin_div;
+                  int bin_end   = bin_start + bin_div - 1;
+                  fprintf(fh, "%d %d %d\n", bin_start, bin_end, hist[b]);
+              }
+
+              fclose(fh);
+              free(hist);
+              
+
 
         }
 
