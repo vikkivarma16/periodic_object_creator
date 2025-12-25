@@ -172,20 +172,22 @@ void relax_spherical_particles(
         int ix = (int)(coords[3*i]   / cell_size);
         int iy = (int)(coords[3*i+1] / cell_size);
         int iz = (int)(coords[3*i+2] / cell_size);
-        if(ix >= nx) ix = nx - 1;
-        if(iy >= ny) iy = ny - 1;
-        if(iz >= nz) iz = nz - 1;
         
-        if(ix < 0) ix = 0;
-        if(iy < 0) iy = 0;
-        if(iz < 0) iz = 0;
+        
+        ix = (ix % nx + nx) % nx;
+        iy = (iy % ny + ny) % ny;
+        iz = (iz % nz + nz) % nz;
 
         
         
         int h = cell_hash(ix,iy,iz,nx,ny,nz);
         p_cell[i] = h;
-        if(grid[h].count < grid[h].max_count)
+        if(grid[h].count < grid[h].max_count){
             grid[h].idx[grid[h].count++] = i;
+        } else {
+            printf("Overflow during rebuild: cell %d\n", h);
+        }
+
     }
 
     /* ---------------- temporaries (hoisted) ---------------- */
@@ -465,17 +467,14 @@ void relax_spherical_particles(
                 if(coords[3*i+2]<0.0) coords[3*i+2]+=box[2];
                 else if(coords[3*i+2]>=box[2]) coords[3*i+2]-=box[2];
 
-                 ix=(int)(coords[3*i]/cell_size);
-                 iy=(int)(coords[3*i+1]/cell_size);
-                 iz=(int)(coords[3*i+2]/cell_size);
+                ix=(int)(coords[3*i]/cell_size);
+                iy=(int)(coords[3*i+1]/cell_size);
+                iz=(int)(coords[3*i+2]/cell_size);
                  
-                if(ix >= nx) ix = nx - 1;
-                if(iy >= ny) iy = ny - 1;
-                if(iz >= nz) iz = nz - 1;
-                
-                if(ix < 0) ix = 0;
-                if(iy < 0) iy = 0;
-                if(iz < 0) iz = 0;
+                ix = (ix % nx + nx) % nx;
+                iy = (iy % ny + ny) % ny;
+                iz = (iz % nz + nz) % nz;
+
 
 
                 
@@ -781,7 +780,12 @@ void relax_spherical_particles(
                     if(iz < 0) iz = 0;
                     int h = cell_hash(ix, iy, iz, nx, ny, nz);
                     p_cell[i] = h;
-                    grid[h].idx[grid[h].count++] = i;
+                    if(grid[h].count < grid[h].max_count){
+                        grid[h].idx[grid[h].count++] = i;
+                    } else {
+                        printf("Overflow during rebuild: cell %d\n", h);
+                    }
+
                 }
             }
         }
