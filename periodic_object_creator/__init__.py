@@ -18,4 +18,5 @@ from .so_scissor_mod import *
 from .so_translator_mod import *
 from .so_wrapper_cylindrical_mod import *
 from .so_wrapper_spherical_mod import *
+from .so_unwrapper_mod import *
 from .vtk_particle_mod import *

@@ -144,7 +144,63 @@ Removes incomplete or broken groups.
 
 ---
 
+
+
+#### `periodic_unwrapper(objects, box, mol_id_index)`
+
+Unwraps molecules in a periodic box using the minimum-image convention, updating only the coordinates while preserving all other attributes.
+
+**Parameters**:
+
+* `objects`: list of object elements `[[x, y, z, attr1, attr2, ..., mol_id], ...]`
+
+  * First three entries must be coordinates
+* `box`: list or tuple of box dimensions `[Lx, Ly, Lz]`
+* `mol_id_index`: integer index in each element that contains the molecule ID
+
+**Behavior**:
+
+* Groups elements by molecule ID
+* Unwraps all atoms in each molecule so that coordinates are contiguous
+* Leaves all non-coordinate attributes unchanged
+* Returns a **new list** with updated coordinates
+
+**Example**:
+
+```python
+objects = [
+    [99.8, 0.1, 0.2, "O", 1],
+    [0.3, 0.2, 0.1, "H", 1],
+    [50.0, 50.0, 50.0, "O", 2],
+    [50.9, 50.2, 50.1, "H", 2],
+]
+
+box = [100.0, 100.0, 100.0]
+
+unwrapped = unwrap_molecules(objects, box, mol_id_index=4)
+print(unwrapped)
+```
+
+**Output**:
+
+```
+[[99.8, 0.1, 0.2, 'O', 1],
+ [100.3, 0.2, 0.1, 'H', 1],
+ [50.0, 50.0, 50.0, 'O', 2],
+ [50.9, 50.2, 50.1, 'H', 2]]
+```
+
+---
+
+
+
+
+
 ### `build_topology(input_object, bond_length=0.96, tolerance=0.2, id_index=4, export_base="example_topo", many_body=False, id_body_index=None)`
+
+
+**Caution: always use after periodic unwrapper**
+
 
 Automatically generates molecular topology with optional multi-body support:
 
