@@ -617,6 +617,7 @@ void relax_spherical_particles(
                         // Remove i from old cell by shifting
                         int *idx = grid[old].idx;
                         int n = grid[old].count;
+                        
                         int found = 0;
                         for(j = 0; j < n; j++){
                             if(idx[j] == i){
@@ -641,7 +642,14 @@ void relax_spherical_particles(
                             grid[nw].idx[grid[nw].count++] = i;
                         } else {
                             // handle overflow if needed
-                            printf("Warning: cell overflow\n");
+                            printf("Warning: cell overflow  %d \n", grid[nw].max_count);
+                            for(int tric = j; tric < grid[nw].max_count; tric++)
+                            {
+                                printf("particles in the grid are %d   ", grid[nw].idx[tric]);
+                            }
+                            
+                            printf("\n");
+                            
                         }
                         // Update particle's current cell
                         p_cell[i] = nw;
