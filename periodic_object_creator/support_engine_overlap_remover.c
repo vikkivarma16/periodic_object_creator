@@ -4,12 +4,19 @@
 #include <string.h>
 #include <time.h>
 #include <stdio.h>
+#include <signal.h>
+
 
 /* ============================================================
    Utilities
    ============================================================ */
 
 
+static volatile sig_atomic_t stop_requested = 0;
+void handle_sigint(int sig){
+    (void)sig;          // suppress unused warning
+    stop_requested = 1;
+}
 
 
 static inline double randu(void){
@@ -79,6 +86,10 @@ void relax_spherical_particles(
     int iter_max, double step_trans, double step_rot,
     int max_particles_per_cell, int grid_shifting_rate
 ){
+
+    signal(SIGINT, handle_sigint);
+
+
     static int seeded = 0;
     if(!seeded){ srand(time(NULL)); seeded = 1; }
 
@@ -88,6 +99,11 @@ void relax_spherical_particles(
     for(int m=0;m<n_mol;m++)
         if(mol_movable[m]) movelist[mcount++] = m;
     if(mcount == 0){ free(movelist); return; }
+    
+    
+    int *mol_id_c = malloc(N*sizeof(int));
+    
+    
 
     /* ---------------- overlap flags ---------------- */
     int *mol_overlap = calloc(n_mol,sizeof(int));
@@ -128,6 +144,15 @@ void relax_spherical_particles(
 
     double *bak = malloc(3*max_cnt*sizeof(double));
     int    *new_cell = malloc(max_cnt*sizeof(int));
+    int    *overlapping_mol = malloc(n_mol*sizeof(int));
+    int n_over_mol ;
+    
+    for (int i =0; i<n_mol; i++)
+    {
+        overlapping_mol[i] = -1;
+    }
+    n_over_mol = 0;
+    
 
     /* ---------------- initial cell build ---------------- */
     for(int i=0;i<N;i++){
@@ -174,6 +199,81 @@ void relax_spherical_particles(
     
     printf ("\n\nOverlap removal on progress ...\n\n");
     
+    int flag_move;
+    
+    
+    /// preparation part which will be executed before the simulation will start 
+    /* ---- molecule COM and relative coordinates ---- */
+    double (*mol_com)[3] = malloc(n_mol * sizeof(*mol_com));
+    
+    
+    /* ============================================================
+   PREPROCESSING: unwrap molecules, compute COM, store geometry
+   ============================================================ */
+
+    for(int m = 0; m < n_mol; m++){
+
+        int start = mol_start[m];
+        int cnt   = mol_count[m];
+
+        /* ---- backup wrapped coordinates ---- */
+        memcpy(bak, &coords[3 * start], 3 * cnt * sizeof(double));
+
+        /* ---- unwrap molecule using minimum image ---- */
+        double ref[3] = {
+            coords[3 * start],
+            coords[3 * start + 1],
+            coords[3 * start + 2]
+        };
+
+        for(int k = 0; k < cnt; k++){
+            int i = start + k;
+            coords[3*i]     = ref[0] + min_image(coords[3*i]     - ref[0], box[0]);
+            coords[3*i + 1] = ref[1] + min_image(coords[3*i + 1] - ref[1], box[1]);
+            coords[3*i + 2] = ref[2] + min_image(coords[3*i + 2] - ref[2], box[2]);
+            
+            mol_id_c[i] = m;
+        }
+
+        /* ---- compute COM in unwrapped space ---- */
+        double com[3] = {0.0, 0.0, 0.0};
+        for(int k = 0; k < cnt; k++){
+            int i = start + k;
+            com[0] += coords[3*i];
+            com[1] += coords[3*i + 1];
+            com[2] += coords[3*i + 2];
+        }
+        com[0] /= cnt;
+        com[1] /= cnt;
+        com[2] /= cnt;
+
+        /* ---- wrap COM back into simulation box ---- */
+        mol_com[m][0] = fmod(com[0] + box[0], box[0]);
+        mol_com[m][1] = fmod(com[1] + box[1], box[1]);
+        mol_com[m][2] = fmod(com[2] + box[2], box[2]);
+
+      
+        /* ---- restore original wrapped coordinates ---- */
+        memcpy(&coords[3 * start], bak, 3 * cnt * sizeof(double));
+        
+    }
+
+    /* ---- adaptive MC parameters ---- */
+  double step_trans_max = step_trans;
+  double step_rot_max   = step_rot;
+
+  int trans_trials = 0, trans_accept = 0;
+  int rot_trials   = 0, rot_accept   = 0;
+
+  const int adapt_interval = 1000;   // how often to adapt
+  const double acc_low  = 0.30;
+  const double acc_high = 0.50;
+  step_trans = 0.5;
+  step_rot = 0.5;
+
+    
+    
+    
     for(int iter=0; iter<iter_max; iter++){
 
         
@@ -218,28 +318,66 @@ void relax_spherical_particles(
 
             
 
-            /* ---- move ---- */
+           
+            
+            for (k = 0; k<n_over_mol; k++){
+                overlapping_mol[k] = -1;
+            }
+            n_over_mol = 0;
+            
+            
+            
+            
+            
+            
             if(drand48()<0.5){
+                /* ---------- TRANSLATION MOVE ---------- */
+                flag_move = 0;
+                trans_trials++;
+
                 random_unit(disp);
-                disp[0]*=step_trans; disp[1]*=step_trans; disp[2]*=step_trans;
-                for(k=0;k<cnt;k++){
-                    i=start+k;
-                    coords[3*i]+=disp[0];
-                    coords[3*i+1]+=disp[1];
-                    coords[3*i+2]+=disp[2];
-                }
-            }else{
-                random_unit(axis);
-                double ang=(2.0*randu()-1.0)*step_rot;
-                for(k=0;k<cnt;k++){
-                    i=start+k;
-                    double p[3]={coords[3*i]-com[0],coords[3*i+1]-com[1],coords[3*i+2]-com[2]};
-                    rotate_point(p,axis,ang);
-                    coords[3*i]=com[0]+p[0];
-                    coords[3*i+1]=com[1]+p[1];
-                    coords[3*i+2]=com[2]+p[2];
+                disp[0] *= step_trans;
+                disp[1] *= step_trans;
+                disp[2] *= step_trans;
+
+                for(k = 0; k < cnt; k++){
+                    i = start + k;
+                    coords[3*i]     += disp[0];
+                    coords[3*i + 1] += disp[1];
+                    coords[3*i + 2] += disp[2];
                 }
             }
+            else{
+                /* ---------- ROTATION MOVE ---------- */
+                flag_move = 1;
+                rot_trials++;
+
+                random_unit(axis);
+                double ang = (2.0 * randu() - 1.0) * step_rot;
+
+                for(k = 0; k < cnt; k++){
+                    i = start + k;
+                    double p[3] = {
+                        coords[3*i]     - com[0],
+                        coords[3*i + 1] - com[1],
+                        coords[3*i + 2] - com[2]
+                    };
+                    rotate_point(p, axis, ang);
+                    coords[3*i]     = com[0] + p[0];
+                    coords[3*i + 1] = com[1] + p[1];
+                    coords[3*i + 2] = com[2] + p[2];
+                }
+
+                disp[0] = disp[1] = disp[2] = 0.0;
+            }
+
+            
+            
+            
+            
+            
+            
+            
 
             cs[0]=cs[1]=cs[2]=0.0;
             cso[0]=cso[1]=cso[2]=0.0;
@@ -247,6 +385,9 @@ void relax_spherical_particles(
             nov = 0;
 
             /* ---- overlap check ---- */
+            
+            
+            accept = 1;
             for(k=0;k<cnt;k++){
                 i=start+k;
                 cmid  = mol_id[i];
@@ -286,32 +427,53 @@ void relax_spherical_particles(
                     Cell *cell=&grid[cell_hash(cx,cy,cz,nx,ny,nz)];
                     for(j=0;j<cell->count;j++){
                         int p=cell->idx[j];
-                        if(mol_id[p]==cmid) continue;
+                        if(mol_id_c[p]==mol) continue;
 
                         double dx=coords[3*i]-(coords[3*p]+sx*box[0]);
                         double dy=coords[3*i+1]-(coords[3*p+1]+sy*box[1]);
                         double dz=coords[3*i+2]-(coords[3*p+2]+sz*box[2]);
                         double cut2=sigma2[part_type[i]*n_ptype+part_type[p]];
                         
-                        //printf ("%d,   %lf   %lf   %lf  %d \n\n", p, dx, dy, dz, mol_id[p]);
+                        //printf ("%d,   %lf   %lf   %lf  %d  %d \n\n", p, dx, dy, dz, mol_id_c[p], N);
                         
                         if(dx*dx+dy*dy+dz*dz<cut2){
-                            cs[0]+=coords[3*i]; cs[1]+=coords[3*i+1]; cs[2]+=coords[3*i+2];
-                            cso[0]+=bak[3*k];  cso[1]+=bak[3*k+1];  cso[2]+=bak[3*k+2];
-                            co[0]+=coords[3*p]+sx*box[0];
-                            co[1]+=coords[3*p+1]+sy*box[1];
-                            co[2]+=coords[3*p+2]+sz*box[2];
-                            nov++;
+                           if (mol_overlap[mol] ==0 || mol_overlap[mol_id_c[p]]==0 ){
+                                  accept =0;
+                                  break;
+                           }
+                           else {
+                                  
+                                  cs[0]+=coords[3*i]; cs[1]+=coords[3*i+1]; cs[2]+=coords[3*i+2];
+                                  cso[0]+=bak[3*k];  cso[1]+=bak[3*k+1];  cso[2]+=bak[3*k+2];
+                                  co[0]+=coords[3*p]+sx*box[0];
+                                  co[1]+=coords[3*p+1]+sy*box[1];
+                                  co[2]+=coords[3*p+2]+sz*box[2];
+                                  nov++;
+                                  
+                                  int found  = 0;
+                                  for (int idx  = 0 ; idx <n_over_mol; idx++){
+                                      if (overlapping_mol[idx] == mol_id_c[p]) { found = 1; break;}
+                                 }
+                                 if (found==0){  overlapping_mol[n_over_mol] =  mol_id_c[p]; n_over_mol++;}
+                                  
+                                  
+                           }
                         }
                     }
+                    
+                    if (accept ==0) break;
                 }
+                if (accept ==0) break;
             }
 
             /* ---- accept / reject ---- */
-            accept = 1;
-            if(nov>0){
-                if(!mol_overlap[mol]) accept=0;
-                else{
+            
+            
+            
+            if(accept ==1 && nov>0){
+            
+                if (flag_move ==1){
+            
                     cs[0]/=nov; cs[1]/=nov; cs[2]/=nov;
                     cso[0]/=nov; cso[1]/=nov; cso[2]/=nov;
                     co[0]/=nov; co[1]/=nov; co[2]/=nov;
@@ -324,13 +486,77 @@ void relax_spherical_particles(
                     if(disp[0]*v[0]+disp[1]*v[1]+disp[2]*v[2]<0.0)
                         accept=0;
                 }
-            }
-           
+                else {
 
+                    /* -------------------------------------------
+                       Compute COM of overlapping molecules
+                       unwrapped w.r.t. moved molecule COM
+                       ------------------------------------------- */
+                    double ref_com[3] = {
+                        mol_com[mol][0] + disp[0],
+                        mol_com[mol][1] + disp[1],
+                        mol_com[mol][2] + disp[2]
+                    };
+
+                    /* wrap reference COM just to be safe */
+                    ref_com[0] = fmod(ref_com[0] + box[0], box[0]);
+                    ref_com[1] = fmod(ref_com[1] + box[1], box[1]);
+                    ref_com[2] = fmod(ref_com[2] + box[2], box[2]);
+
+                    com[0] = com[1] = com[2] = 0.0;
+
+                    for(j = 0; j < n_over_mol; j++){
+                        int m2 = overlapping_mol[j];
+
+                        /* unwrap overlapping molecule COM
+                           relative to reference COM */
+                        double ux = ref_com[0] +
+                                    min_image(mol_com[m2][0] - ref_com[0], box[0]);
+                        double uy = ref_com[1] +
+                                    min_image(mol_com[m2][1] - ref_com[1], box[1]);
+                        double uz = ref_com[2] +
+                                    min_image(mol_com[m2][2] - ref_com[2], box[2]);
+
+                        com[0] += ux;
+                        com[1] += uy;
+                        com[2] += uz;
+                    }
+
+                    com[0] /= n_over_mol;
+                    com[1] /= n_over_mol;
+                    com[2] /= n_over_mol;
+
+                    /* -------------------------------------------
+                       Directional acceptance test
+                       ------------------------------------------- */
+                    double dx = ref_com[0] - com[0];
+                    double dy = ref_com[1] - com[1];
+                    double dz = ref_com[2] - com[2];
+
+                    if(disp[0]*dx + disp[1]*dy + disp[2]*dz < 0.0)
+                        accept = 0;
+                      
+                }
+
+                
+            }
+            
+            
             if(!accept){
+            
                 memcpy(&coords[3*start], bak, 3*cnt*sizeof(double));
-            }else{
+                 
+            }
+            else{
                 mol_overlap[mol]=(nov>0);
+            
+                if(flag_move == 0) trans_accept++;
+                else               rot_accept++;
+                
+                mol_com[mol][0] = fmod(mol_com[mol][0] + disp[0] + box[0], box[0]);
+                mol_com[mol][1] = fmod(mol_com[mol][1] + disp[1] + box[1], box[1]);
+                mol_com[mol][2] = fmod(mol_com[mol][2] + disp[2] + box[2], box[2]);
+                
                 for(k = 0; k < cnt; k++){
                     i = start + k;
                     int old = p_cell[i], nw = new_cell[k];
@@ -348,7 +574,6 @@ void relax_spherical_particles(
                                 break;
                             }
                         }
-
                         // Add i to new cell
                         if(grid[nw].count < grid[nw].max_count){
                             grid[nw].idx[grid[nw].count++] = i;
@@ -356,17 +581,50 @@ void relax_spherical_particles(
                             // handle overflow if needed
                             printf("Warning: cell overflow\n");
                         }
-
                         // Update particle's current cell
                         p_cell[i] = nw;
                     }
                 }
-
             }
         }
 
-      
+        if(stop_requested){
+            printf("\n\nCtrl+C detected — stopping relaxation cleanly.\n");
+            break;
+        }
+        
+        
+        
+           
 
+        
+        
+        
+        /* ---------- adaptive step control ---------- */
+        if((iter * trials) % adapt_interval == 0 && (trans_trials + rot_trials) > 0){
+
+            if(trans_trials > 0){
+                double acc = (double)trans_accept / trans_trials;
+                if(acc > acc_high)
+                    step_trans = fmin(step_trans * 1.1, step_trans_max);
+                else if(acc < acc_low)
+                    step_trans *= 0.9;
+            }
+
+            if(rot_trials > 0){
+                double acc = (double)rot_accept / rot_trials;
+                if(acc > acc_high)
+                    step_rot = fmin(step_rot * 1.1, step_rot_max);
+                else if(acc < acc_low)
+                    step_rot *= 0.9;
+            }
+
+            /* reset counters */
+            trans_trials = trans_accept = 0;
+            rot_trials   = rot_accept   = 0;
+        }
+
+        // grid shifting in grid_shifting_rate steps     
         if(iter % grid_shifting_rate == 0){   // every 10 iterations
             int dx = (rand() % 3) - 1;
             int dy = (rand() % 3) - 1;
@@ -392,6 +650,18 @@ void relax_spherical_particles(
                     if(coords[3*i+2] < 0) coords[3*i+2] += box[2];
                     if(coords[3*i+2] >= box[2]) coords[3*i+2] -= box[2];
                 }
+                
+                 for(i = 0; i < n_mol; i++){
+                    mol_com[i][0]     += shift[0];
+                     mol_com[i][1]     += shift[1];
+                      mol_com[i][2]     += shift[2];
+                    // wrap back
+                    mol_com[i][0] = fmod(mol_com[i][0] + box[0], box[0]);
+                    mol_com[i][1] = fmod(mol_com[i][1] + box[1], box[1]);
+                    mol_com[i][2] = fmod(mol_com[i][2] + box[2], box[2]);
+                }
+                
+                
 
                 /* rebuild grid safely */
                 for(int i = 0; i < nc; i++){
@@ -420,12 +690,6 @@ void relax_spherical_particles(
                 }
             }
         }
-
-        
-        
-        
-
-
 
 
         if(iter % 100 == 0) { // update every trial step

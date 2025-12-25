@@ -145,7 +145,7 @@ mol_idx  =  7
 mol_type_idx = 5
 particle_type_idx = 5
 
-sigma_matrix =  [[1.0, 1.0], [1.0, 1.0]]
+sigma_matrix =  [[1.01, 1.01], [1.01, 1.01]]
 
 moving_mol_id  = []
 for i in range(len(input_object)):
@@ -157,11 +157,11 @@ cell_size =  (100.0/95.0)
 
 
 iter_max  =  10000000
-translation_step  =  0.05
-rotation_step  =  0.01
+translation_step  =  0.5
+rotation_step  =  0.5
 
 
-water_final = overlap_remover(input_object, mol_idx, particle_idx, mol_type_idx, particle_type_idx, sigma_matrix, moving_mol_id, box, cell_size, iter_max, translation_step, rotation_step, grid_shifting_rate=100)
+water_final = overlap_remover(input_object, mol_idx, particle_idx, mol_type_idx, particle_type_idx, sigma_matrix, moving_mol_id, box, cell_size, iter_max, translation_step, rotation_step, grid_shifting_rate=1000)
 
 
 
