@@ -334,9 +334,10 @@ void relax_spherical_particles(
   int trans_trials = 0, trans_accept = 0;
   int rot_trials   = 0, rot_accept   = 0;
 
-  const int adapt_interval = 1000;   // how often to adapt
+  const int adapt_interval = 100;   // how often to adapt
   const double acc_low  = 0.30;
   const double acc_high = 0.50;
+  const double step_min = 0.005;
 
     
     
@@ -701,21 +702,29 @@ void relax_spherical_particles(
         /* ---------- adaptive step control ---------- */
         if((iter * trials) % adapt_interval == 0 && (trans_trials + rot_trials) > 0){
 
-            if(trans_trials > 0){
+            
+
+           
                 double acc = (double)trans_accept / trans_trials;
                 if(acc > acc_high)
                     step_trans = fmin(step_trans * 1.1, step_trans_max);
                 else if(acc < acc_low)
                     step_trans *= 0.9;
-            }
 
-            if(rot_trials > 0){
-                double acc = (double)rot_accept / rot_trials;
+                /* enforce lower bound */
+                step_trans = fmax(step_trans, step_min);
+            
+
+            
+                acc = (double)rot_accept / rot_trials;
                 if(acc > acc_high)
                     step_rot = fmin(step_rot * 1.1, step_rot_max);
                 else if(acc < acc_low)
                     step_rot *= 0.9;
-            }
+
+                /* enforce lower bound */
+                step_rot = fmax(step_rot, step_min);
+            
 
             /* reset counters */
             trans_trials = trans_accept = 0;
