@@ -617,16 +617,25 @@ void relax_spherical_particles(
                         // Remove i from old cell by shifting
                         int *idx = grid[old].idx;
                         int n = grid[old].count;
+                        int found = 0;
                         for(j = 0; j < n; j++){
                             if(idx[j] == i){
-                                // shift all subsequent entries down
-                                for(int tric = j; tric < n - 1; tric++)
+                                for(int tric = j; tric < n; tric++)
                                     idx[tric] = idx[tric + 1];
-                                idx[n - 1] = -1; // optional: mark last slot as empty
+                                idx[n - 1] = -1;
                                 grid[old].count--;
+                                found = 1;
                                 break;
                             }
                         }
+
+                        if(!found){
+                            printf("ERROR: particle %d not found in old cell %d\n", i, old);
+                        }
+
+                        
+                        
+                        
                         // Add i to new cell
                         if(grid[nw].count < grid[nw].max_count){
                             grid[nw].idx[grid[nw].count++] = i;
