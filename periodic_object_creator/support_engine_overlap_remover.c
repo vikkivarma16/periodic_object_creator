@@ -658,6 +658,10 @@ void relax_spherical_particles(
                             // handle overflow if needed
                             printf("\n\nWarning: cell overflow: for max size cell  %d, cell size   %lf  max cell number in the box %d %d %d\n", grid[nw].max_count, cell_size, nx, ny, nz);
                             
+                            for(int a=0;a<n_ptype;a++)
+                                for(int b=0;b<n_ptype;b++)
+                                    printf("\n%lf    %lf\n", sigma2[a*n_ptype+b], sigma[a*n_ptype+b]);
+                            
                             int x, y, z;
                             cell_unhash(nw, nx, ny, &x, &y, &z);
                             printf("unhashed cell number is %d %d %d   \n", x, y , z);
