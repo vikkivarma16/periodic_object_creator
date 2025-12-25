@@ -202,6 +202,50 @@ void relax_spherical_particles(
     int flag_move;
     
     
+    
+    
+    
+    /* ============================================================
+   Remap part_type IDs to contiguous range [0 .. p_type-1]
+   WITHOUT changing particle order
+   ============================================================ */
+
+  int *unique_types = malloc(N * sizeof(int));
+  int p_type = 0;
+
+  /* mark all as unused */
+  for(int i = 0; i < N; i++)
+      unique_types[i] = -1;
+
+  for(int i = 0; i < N; i++){
+      int t = part_type[i];
+      int mapped = -1;
+
+      /* check if this type already exists */
+      for(int j = 0; j < p_type; j++){
+          if(unique_types[j] == t){
+              mapped = j;
+              break;
+          }
+      }
+
+      /* if new type, assign next ID */
+      if(mapped == -1){
+          unique_types[p_type] = t;
+          part_type[i] = p_type;
+          p_type++;
+      } else {
+          part_type[i] = mapped;
+      }
+  }
+
+  /* p_type = number of unique particle types */
+  /* unique_types[new_id] -> original ID */
+
+  printf("Remapped particle types to 0..%d\n", p_type - 1);
+
+    
+    
     /// preparation part which will be executed before the simulation will start 
     /* ---- molecule COM and relative coordinates ---- */
     double (*mol_com)[3] = malloc(n_mol * sizeof(*mol_com));
