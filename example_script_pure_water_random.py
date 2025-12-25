@@ -16,6 +16,7 @@ from periodic_object_creator.so_overlap_eliminator_mod import overlap_eliminator
 from periodic_object_creator.so_random_translator_mod import randomize_positions
 from periodic_object_creator.so_reflector_mod import reflector
 from periodic_object_creator.so_replicator_mod import replicator
+from periodic_object_creator.so_unwrapper_mod import periodic_unwrapper
 from periodic_object_creator.so_rotator_mod import rotator
 from periodic_object_creator.so_scissor_mod import scissor
 from periodic_object_creator.so_translator_mod import translator
@@ -39,7 +40,7 @@ from periodic_object_creator.vtk_particle_mod import particle_vis
 #def translator(input_object, tvector):
 #def wrapper_cylindrical(input_object, cylinder_radius, object_size):
 #def wrapper_spherical(input_object, sphere_radius, object_size):
-
+#def periodic_unwrapper(object, box, mol_id_index):
 
 
 
@@ -125,7 +126,7 @@ new_obj = assign_group_ids(water_lattic, group_size, current_id, id_index)
 water_lattic =  new_obj
 
 
-random_object =  randomize_positions (water_lattic, idx  =  7,  box  = box_size,  seed=3840983, rotation =  True)
+random_object =  randomize_positions (water_lattic, idx  =  7,  box  = box_size,  seed=3840983, rotation =  False)
 
 
 particle_vis(random_object, "water_random")
@@ -143,9 +144,9 @@ particle_idx=  6
 mol_idx  =  7
 
 mol_type_idx = 5
-particle_type_idx = 5
+particle_type_idx = 4
 
-sigma_matrix =  [[1.01, 1.01], [1.01, 1.01]]
+sigma_matrix =  [[0.01, 1.6], [1.6, 3.2]]
 
 moving_mol_id  = []
 for i in range(len(input_object)):
@@ -161,10 +162,25 @@ translation_step  =  0.5
 rotation_step  =  0.5
 
 
-water_final = overlap_remover(input_object, mol_idx, particle_idx, mol_type_idx, particle_type_idx, sigma_matrix, moving_mol_id, box, cell_size, iter_max, translation_step, rotation_step, grid_shifting_rate=1000)
+water_final = overlap_remover(input_object, mol_idx, particle_idx, mol_type_idx, particle_type_idx, sigma_matrix, moving_mol_id, box, cell_size, iter_max, translation_step, rotation_step, grid_shifting_rate=10)
 
 
 
 particle_vis(water_final, "water_final")
 export_xyz (water_final, "water_final")
 
+
+bond_length =  (0.8164904*0.8164904+0.5773590*0.5773590)**0.5
+
+
+tolerance = 0.2 
+
+id_body_index =7
+
+unwrapped_water = periodic_unwrapper (water_final, box, id_body_index)
+
+
+build_topology(unwrapped_water, bond_length, tolerance, id_index=6,
+                   coord_indices=(0, 1, 2), export_base="topology",
+                   many_body=True, id_body_index=7)
+        

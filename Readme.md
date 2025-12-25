@@ -608,6 +608,7 @@ from periodic_object_creator.so_translator_mod import translator
 from periodic_object_creator.so_wrapper_cylindrical_mod import wrapper_cylindrical
 from periodic_object_creator.so_wrapper_spherical_mod import wrapper_spherical
 from periodic_object_creator.vtk_particle_mod import particle_vis
+from periodic_object_creator.so_unwrapper_mod import periodic_unwrapper
 ```
 
 **Usage Examples**:
