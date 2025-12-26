@@ -71,7 +71,7 @@ static void rotate_point(double p[3], const double a[3], double ang){
    ============================================================ */
 
 typedef struct{
-    int count, max_count;
+    int count;
     int *idx;
 } Cell;
 
@@ -136,7 +136,6 @@ void relax_spherical_particles(
     Cell *grid = malloc(nc * sizeof(Cell));
     for(int i = 0; i < nc; i++){
         grid[i].count = 0;
-        grid[i].max_count = max_particles_per_cell;
         grid[i].idx = malloc(max_particles_per_cell * sizeof(int));
         for(int j = 0; j < max_particles_per_cell; j++)
             grid[i].idx[j] = -1;  // mark all slots as "empty"
@@ -186,7 +185,7 @@ void relax_spherical_particles(
         
         int h = cell_hash(ix,iy,iz,nx,ny,nz);
         p_cell[i] = h;
-        if(grid[h].count < grid[h].max_count){
+        if(grid[h].count < max_particles_per_cell){
             grid[h].idx[grid[h].count++] = i;
         } else {
             printf("Overflow during rebuild: cell %d\n", h);
@@ -631,15 +630,15 @@ void relax_spherical_particles(
                     int old = p_cell[i], nw = new_cell[k];
                     if(old != nw){
                         // Remove i from old cell by shifting
-                        int *idxx = grid[old].idx;
+                        // int *idxx = grid[old].idx;
                         int n = grid[old].count;
                         
                         int found = 0;
                         for(j = 0; j < n; j++){
-                            if(idxx[j] == i){
+                            if(grid[old].idx[j] == i){
                                 for(int tric = j; tric < n-1; tric++)
-                                    idxx[tric] = idxx[tric + 1];
-                                idxx[n - 1] = -1;
+                                    grid[old].idx[tric] = grid[old].idx[tric + 1];
+                                grid[old].idx[n - 1] = -1;
                                 grid[old].count--;
                                 found = 1;
                                 break;
@@ -656,12 +655,12 @@ void relax_spherical_particles(
                         
                         
                         // Add i to new cell
-                        if(grid[nw].count < grid[nw].max_count){
+                        if(grid[nw].count < max_particles_per_cell){
                             grid[nw].idx[grid[nw].count] = i;
                             grid[nw].count++;
                         } else {
                             // handle overflow if needed
-                            printf("\n\nWarning: cell overflow: for max size cell  %d, cell size   %lf  max cell number in the box %d %d %d\n", grid[nw].max_count, cell_size, nx, ny, nz);
+                            printf("\n\nWarning: cell overflow: for max size cell  %d, cell size   %lf  max cell number in the box %d %d %d\n", max_particles_per_cell, cell_size, nx, ny, nz);
                             
                             for(int a=0;a<n_ptype;a++)
                                 for(int b=0;b<n_ptype;b++)
@@ -674,7 +673,7 @@ void relax_spherical_particles(
                             printf("particles on the grid are : \n");
                             
                             
-                            for(int tric = j; tric < grid[nw].max_count; tric++)
+                            for(int tric = j; tric < max_particles_per_cell; tric++)
                             {
                                 printf("  %d      %d    %lf    %lf    %lf \n  ", tric, grid[nw].idx[tric], coords[grid[nw].idx[tric]*3],  coords[grid[nw].idx[tric]*3+1],  coords[grid[nw].idx[tric]*3+2]);
                             }
@@ -829,7 +828,7 @@ void relax_spherical_particles(
 
                 // ---------- Clear all cells ----------
                 for(int c = 0; c < nc; c++){
-                    for(int j = 0; j < grid[c].max_count; j++)
+                    for(int j = 0; j < max_particles_per_cell; j++)
                         grid[c].idx[j] = -1;
                     grid[c].count = 0;
                 }
@@ -854,7 +853,7 @@ void relax_spherical_particles(
 
                       p_cell[it] = h;
 
-                      if(grid[h].count < grid[h].max_count){
+                      if(grid[h].count < max_particles_per_cell){
                           grid[h].idx[grid[h].count++] = it;
                       } else {
                           printf("Warning: Overflow during rebuild at cell %d\n", h);
