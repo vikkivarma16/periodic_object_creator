@@ -475,9 +475,7 @@ void relax_spherical_particles(
                 iy=(int)(coords[3*i+1]/cell_size);
                 iz=(int)(coords[3*i+2]/cell_size);
                  
-                ix = (ix % nx + nx) % nx;
-                iy = (iy % ny + ny) % ny;
-                iz = (iz % nz + nz) % nz;
+               
 
 
 
