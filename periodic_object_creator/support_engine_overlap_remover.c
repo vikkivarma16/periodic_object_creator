@@ -439,14 +439,7 @@ void relax_spherical_particles(
                 disp[0] = disp[1] = disp[2] = 0.0;
             }
 
-            
-            
-            
-            
-            
-            
-            
-
+           
             cs[0]=cs[1]=cs[2]=0.0;
             cso[0]=cso[1]=cso[2]=0.0;
             co[0]=co[1]=co[2]=0.0;
@@ -473,11 +466,6 @@ void relax_spherical_particles(
                 iz=(int)floor(coords[3*i+2]/cell_size);
                  
                
-
-
-
-                
-
                 new_cell[k]=cell_hash(ix,iy,iz,nx,ny,nz);
 
                 for(o=0;o<27;o++){
@@ -655,28 +643,8 @@ void relax_spherical_particles(
                             grid[nw].count++;
                         } else {
                             // handle overflow if needed
-                            printf("\n\nWarning: cell overflow: for max size cell  %d, cell size   %lf  max cell number in the box %d %d %d\n", max_particles_per_cell, cell_size, nx, ny, nz);
-                            
-                            for(int a=0;a<n_ptype;a++)
-                                for(int b=0;b<n_ptype;b++)
-                                    printf("\n%lf    %lf\n", sigma2[a*n_ptype+b], sigma[a*n_ptype+b]);
-                            
-                            int x, y, z;
-                            cell_unhash(nw, nx, ny, &x, &y, &z);
-                            printf("unhashed cell number is %d %d %d   \n", x, y , z);
-                            
-                            printf("particles on the grid are : \n");
-                            
-                            
-                            for(int tric = j; tric < max_particles_per_cell; tric++)
-                            {
-                                printf("  %d      %d    %lf    %lf    %lf \n  ", tric, grid[nw].idx[tric], coords[grid[nw].idx[tric]*3],  coords[grid[nw].idx[tric]*3+1],  coords[grid[nw].idx[tric]*3+2]);
-                            }
-                            
-                            printf("\n");
-                            
+                            printf("\n\nWarning: cell overflow: for max size cell ");
                             exit(0);
-                            
                         }
                         // Update particle's current cell
                         p_cell[i] = nw;
@@ -689,13 +657,7 @@ void relax_spherical_particles(
             printf("\n\nCtrl+C detected — stopping relaxation cleanly.\n");
             break;
         }
-        
-        
-        
-           
-
-        
-        
+     
         
         /* ---------- adaptive step control ---------- */
         if(iter % adapt_interval == 0 && (trans_trials + rot_trials) > 0){
@@ -752,21 +714,6 @@ void relax_spherical_particles(
                     dz * 0.43 * box[2]
                 };
 
-                /* ---------- Build histogram BEFORE shift ---------- */
-                int bin_div = 10;   // adjustable bin divisor
-                int max_occ = max_particles_per_cell;
-                int n_bins = max_occ / bin_div + 1;
-                int *hist_before = calloc(n_bins, sizeof(int));
-                if(!hist_before){ printf("Error allocating hist_before\n"); exit(1); }
-
-                for(int c = 0; c < nc; c++){
-                    int occ = grid[c].count;
-                    int bin = occ / bin_div;
-                    if(bin >= n_bins) bin = n_bins - 1;
-                    hist_before[bin]++;
-                }
-
-                /* ---------- Shift all particle coordinates and wrap ---------- */
                 
                 for(int i = 0; i < N; i++){
                     
@@ -786,7 +733,6 @@ void relax_spherical_particles(
                     
                 }
 
-                
                
                 for(int i = 0; i < n_mol; i++){
                  
@@ -820,59 +766,32 @@ void relax_spherical_particles(
                
                 
                 for(int it = 0; it < N; it++){
-                      int ix = (int)floor(coords[3*it] / cell_size);
-                      int iy = (int)floor(coords[3*it + 1] / cell_size);
-                      int iz = (int)floor(coords[3*it + 2] / cell_size);
+                    int ix = (int)floor(coords[3*it] / cell_size);
+                    int iy = (int)floor(coords[3*it + 1] / cell_size);
+                    int iz = (int)floor(coords[3*it + 2] / cell_size);
 
-    
+  
 
-                      int h = cell_hash(ix, iy, iz, nx, ny, nz);
+                    int h = cell_hash(ix, iy, iz, nx, ny, nz);
 
-                     
+                   
 
-                      p_cell[it] = h;
+                    p_cell[it] = h;
 
-                      if(grid[h].count < max_particles_per_cell){
-                          grid[h].idx[grid[h].count++] = it;
-                      } else {
-                          printf("Warning: Overflow during rebuild at cell %d\n", h);
-                      }
-                  } 
+                    if(grid[h].count < max_particles_per_cell){
+                        grid[h].idx[grid[h].count++] = it;
+                    } else {
+                        printf("Warning: Overflow during rebuild at cell %d\n", h);
+                    }
+                } 
 
-                
-                
-                /* ---------- Build histogram AFTER shift ---------- */
-                int *hist_after = calloc(n_bins, sizeof(int));
-                if(!hist_after){ printf("Error allocating hist_after\n"); exit(1); }
+               
 
-                for(int c = 0; c < nc; c++){
-                    int occ = grid[c].count;
-                    int bin = occ / bin_div;
-                    if(bin >= n_bins) bin = n_bins - 1;
-                    hist_after[bin]++;
-                }
-
-                /* ---------- Print histogram change ---------- */
-                printf("\nGrid shift applied: dx=%d dy=%d dz=%d\n", dx, dy, dz);
-                printf("Bin\tBefore\tAfter\tChange\n");
-                for(int b = 0; b < n_bins; b++){
-                    printf("%d\t%d\t%d\t%d\n", b, hist_before[b], hist_after[b], hist_after[b]-hist_before[b]);
-                }
-
-                free(hist_before);
-                free(hist_after);
                 for(int m=0;m<n_mol;m++) mol_overlap[m] = 1;
             
             }
             
         }
-
-
-
-
-
-
-
 
         if(iter % 100 == 0) { // update every trial step
               int overlap_count = 0;
@@ -890,72 +809,6 @@ void relax_spherical_particles(
               }
               printf("] %3.0f%% Overlap-free: %d/%d, iteration no: %d, with grid shifting interval: %d ", progress*100.0, n_mol - overlap_count, n_mol, iter, grid_shifting_rate);
               fflush(stdout);
-              
-              /* ============================================================
-                 Cell efficiency histogram (particles per cell)
-                 ============================================================ */
-
-              /* ============================================================
-   Cell efficiency histogram (particles per cell)
-   Creates folder "cell_bin" if not present
-   ============================================================ */
-
-              
-              /* ---------- create output directory ---------- */
-              const char *outdir = "cell_bin";
-              if (mkdir(outdir, 0755) != 0) {
-                  if (errno != EEXIST) {
-                      perror("mkdir cell_bin failed");
-                      exit(1);
-                  }
-                  /* if EEXIST → directory already exists, OK */
-              }
-
-              int bin_div = 10;   /* adjustable bin divisor */
-              int max_occ = max_particles_per_cell;
-              int n_bins = max_occ / bin_div + 1;
-
-              int *hist = calloc(n_bins, sizeof(int));
-              if(!hist){
-                  printf("Error allocating histogram\n");
-                  exit(1);
-              }
-
-              /* ---------- build histogram ---------- */
-              for(int c = 0; c < nc; c++){
-                  int occ = grid[c].count;
-                  int bin = occ / bin_div;
-                  if(bin >= n_bins) bin = n_bins - 1;
-                  hist[bin]++;
-              }
-
-              /* ---------- file name with iteration ---------- */
-              char fname[512];
-              sprintf(fname, "%s/cell_efficiency_histogram_%d.txt", outdir, iter);
-
-              FILE *fh = fopen(fname, "w");
-              if(!fh){
-                  printf("Error opening histogram file %s\n", fname);
-                  free(hist);
-                  exit(1);
-              }
-
-              fprintf(fh, "# Cell efficiency histogram\n");
-              fprintf(fh, "# Iteration: %d\n", iter);
-              fprintf(fh, "# Bin_size: %d particles\n", bin_div);
-              fprintf(fh, "# Columns: bin_start bin_end cell_count\n\n");
-
-              for(int b = 0; b < n_bins; b++){
-                  int bin_start = b * bin_div;
-                  int bin_end   = bin_start + bin_div - 1;
-                  fprintf(fh, "%d %d %d\n", bin_start, bin_end, hist[b]);
-              }
-
-              fclose(fh);
-              free(hist);
-              
-
-
         }
 
 
