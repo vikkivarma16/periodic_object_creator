@@ -782,9 +782,11 @@ void relax_spherical_particles(
 
                 // Clear all cells
                 for(int c = 0; c < nc; c++){
-                    grid[c].count = 0;
-                    for(int j = 0; j < max_particles_per_cell; j++)
+                    
+                    for(int j = 0; j < grid[c].count; j++)
                         grid[c].idx[j] = -1;  // mark all slots as empty
+                        
+                    grid[c].count = 0;
                 }
 
                 // Rebuild grid safely
@@ -808,10 +810,6 @@ void relax_spherical_particles(
                     }
                 }
                 
-                for(i = 0; i < n_mol; i++){
-                    mol_overlap[i] = 1; // or recompute based on current positions
-                }
-
                 
             }
         }
