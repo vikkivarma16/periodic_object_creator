@@ -160,7 +160,7 @@ iter_max  =  10000000
 
 
 
-sigma_matrix =  [[3.2, 0.01], [0.01, 0.01]]
+sigma_matrix =  [[3.17, 0.01], [0.01, 0.01]]
 n= int (100/3.3)
 cell_size =  (100.0/float(n))
 
