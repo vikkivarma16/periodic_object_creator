@@ -745,7 +745,7 @@ void relax_spherical_particles(
 
             if(dx || dy || dz){
             
-                printf("\nI am just checking |||||\n");
+               // printf("\nI am just checking |||||\n");
                 double shift[3] = {
                     dx * 0.43 * box[0],
                     dy * 0.43 * box[1],
@@ -769,10 +769,7 @@ void relax_spherical_particles(
                 /* ---------- Shift all particle coordinates and wrap ---------- */
                 
                 for(int i = 0; i < N; i++){
-                    double old_x = coords[3*i];
-                    double old_y = coords[3*i+1];
-                    double old_z = coords[3*i+2];
-
+                    
                     coords[3*i]     += shift[0];
                     coords[3*i + 1] += shift[1];
                     coords[3*i + 2] += shift[2];
@@ -786,20 +783,13 @@ void relax_spherical_particles(
                     if(coords[3*i+2]<0.0) coords[3*i+2]+=box[2];
                     else if(coords[3*i+2]>=box[2]) coords[3*i+2]-=box[2];
 
-                    // Check if coordinate actually changed
-                    if(coords[3*i] != old_x || coords[3*i+1] != old_y || coords[3*i+2] != old_z){
-                        printf("Particle %d coordinates changed: (%.6f, %.6f, %.6f) -> (%.6f, %.6f, %.6f)\n",
-                               i, old_x, old_y, old_z, coords[3*i], coords[3*i+1], coords[3*i+2]);
-                    }
+                    
                 }
 
                 
                
                 for(int i = 0; i < n_mol; i++){
-                  double old_x = mol_com[i][0];
-                  double old_y = mol_com[i][1];
-                  double old_z = mol_com[i][2];
-
+                 
                   mol_com[i][0] += shift[0];
                   mol_com[i][1] += shift[1];
                   mol_com[i][2] += shift[2];
@@ -814,10 +804,7 @@ void relax_spherical_particles(
                   else if(mol_com[i][2] >= box[2]) mol_com[i][2] -= box[2];
 
                   // Check if COM actually changed
-                  if(mol_com[i][0] != old_x || mol_com[i][1] != old_y || mol_com[i][2] != old_z){
-                      printf("Molecule %d COM changed: (%.6f, %.6f, %.6f) -> (%.6f, %.6f, %.6f)\n",
-                             i, old_x, old_y, old_z, mol_com[i][0], mol_com[i][1], mol_com[i][2]);
-                  }
+                 
               }
 
 
@@ -841,10 +828,7 @@ void relax_spherical_particles(
 
                       int h = cell_hash(ix, iy, iz, nx, ny, nz);
 
-                      // Check if particle's cell changed
-                      if(p_cell[it] != h){
-                          printf("Particle %d moved from cell %d to %d\n", i, p_cell[it], h);
-                      }
+                     
 
                       p_cell[it] = h;
 
