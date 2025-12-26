@@ -274,6 +274,25 @@ void relax_spherical_particles(
     /* ---- molecule COM and relative coordinates ---- */
     double (*mol_com)[3] = malloc(n_mol * sizeof(*mol_com));
     
+    double (*next_tstep)[3] = malloc(n_mol * sizeof(*next_tstep));
+    
+    
+    for (int i  = 0; i < n_mol; i++)
+    {
+          random_unit(disp);
+          disp[0] *= step_trans;
+          disp[1] *= step_trans;
+          disp[2] *= step_trans;
+    
+          next_tstep[i][0] =  disp[0];
+           next_tstep[i][1] =  disp[1];
+            next_tstep[i][2] =  disp[2];
+          
+    }
+    
+    
+    
+    
     int *nmol_overl = malloc(n_mol * sizeof(int));
     
     for (int i = 0; i < n_mol; i++)
@@ -422,10 +441,10 @@ void relax_spherical_particles(
                 flag_move = 0;
                 trans_trials++;
 
-                random_unit(disp);
-                disp[0] *= step_trans;
-                disp[1] *= step_trans;
-                disp[2] *= step_trans;
+                
+                disp[0] =  next_tstep[mol][0];
+                disp[1] =  next_tstep[mol][1];
+                disp[2] =  next_tstep[mol][2];
 
                 for(k = 0; k < cnt; k++){
                     i = start + k;
@@ -555,7 +574,7 @@ void relax_spherical_particles(
                 else if (nov> nmol_overl[mol]) {
                       accept = 0; 
                 }
-                else {
+                else if (flag_move==1) {
             
                     cs[0]/=nov; cs[1]/=nov; cs[2]/=nov;
                     cso[0]/=nov; cso[1]/=nov; cso[2]/=nov;
@@ -571,7 +590,7 @@ void relax_spherical_particles(
                 }
                 
                 
-                /* else {
+                else {
 
                     // -------------------------------------------
                      //  Compute COM of overlapping molecules
@@ -584,9 +603,9 @@ void relax_spherical_particles(
                     };
 
                     // wrap reference COM just to be safe 
-                    //ref_com[0] = fmod(ref_com[0] + box[0], box[0]);
-                    //ref_com[1] = fmod(ref_com[1] + box[1], box[1]);
-                    //ref_com[2] = fmod(ref_com[2] + box[2], box[2]);
+                    ref_com[0] = fmod(ref_com[0] + disp [0] + box[0], box[0]);
+                    ref_com[1] = fmod(ref_com[1] + disp [1] + box[1], box[1]);
+                    ref_com[2] = fmod(ref_com[2] + disp [2] + box[2], box[2]);
 
                     com[0] = com[1] = com[2] = 0.0;
 
@@ -617,11 +636,11 @@ void relax_spherical_particles(
                     double dx = ref_com[0] - com[0];
                     double dy = ref_com[1] - com[1];
                     double dz = ref_com[2] - com[2];
-
-                    if(disp[0]*dx + disp[1]*dy + disp[2]*dz < 0.0)
-                        accept = 0;
-                      
-                }*/
+                    double mag  =  sqrt (dx*dx + dy*dy + dz*dz) ;
+                    next_tstep[mol][0] = step_trans*dx/mag;
+                    next_tstep[mol][1] = step_trans*dx/mag;
+                    next_tstep[mol][2] = step_trans*dx/mag;
+                }
 
                 
             }
