@@ -637,7 +637,7 @@ void relax_spherical_particles(
                         int found = 0;
                         for(j = 0; j < n; j++){
                             if(idxx[j] == i){
-                                for(int tric = j; tric < n; tric++)
+                                for(int tric = j; tric < n-1; tric++)
                                     idxx[tric] = idxx[tric + 1];
                                 idxx[n - 1] = -1;
                                 grid[old].count--;
