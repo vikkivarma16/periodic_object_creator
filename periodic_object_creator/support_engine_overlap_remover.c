@@ -824,7 +824,7 @@ void relax_spherical_particles(
                   else if(i == pos) printf(">");
                   else printf(" ");
               }
-              printf("] %3.0f%% Overlap-free: %d/%d, iteration no: %d, with grid shifting interval: %d current translational step %lf", progress*100.0, n_mol - overlap_count, n_mol, iter, grid_shifting_rate, step_trans);
+              printf("] %3.0f%% Overlap-free: %d/%d, iteration no: %d, with grid shifting interval: %d, current translational step %lf", progress*100.0, n_mol - overlap_count, n_mol, iter, grid_shifting_rate, step_trans);
               fflush(stdout);
         }
 
