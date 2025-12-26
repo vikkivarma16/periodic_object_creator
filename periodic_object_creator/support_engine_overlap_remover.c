@@ -773,7 +773,7 @@ void relax_spherical_particles(
                 }
 
                 /* ---------- Shift all particle coordinates and wrap ---------- */
-                
+                /*
                 for(int i = 0; i < N; i++){
                     double old_x = coords[3*i];
                     double old_y = coords[3*i+1];
@@ -800,7 +800,7 @@ void relax_spherical_particles(
                 }
 
                 
-                /* ---------- Shift molecule COMs and wrap ---------- */
+               
                 for(int i = 0; i < n_mol; i++){
                   double old_x = mol_com[i][0];
                   double old_y = mol_com[i][1];
@@ -824,7 +824,7 @@ void relax_spherical_particles(
                       printf("Molecule %d COM changed: (%.6f, %.6f, %.6f) -> (%.6f, %.6f, %.6f)\n",
                              i, old_x, old_y, old_z, mol_com[i][0], mol_com[i][1], mol_com[i][2]);
                   }
-              }
+              }*/
 
 
                 /* ---------- Clear all cells ----------
