@@ -784,7 +784,7 @@ void relax_spherical_particles(
                     int iy = (int)(coords[3*i + 1] / cell_size);
                     int iz = (int)(coords[3*i + 2] / cell_size);
                     
-                    
+                    if (ix <0 || iy < 0 || iz <0) printf("negative cell number encountered\n\n\n");
                       
                     ix = (ix % nx + nx) % nx;
                     iy = (iy % ny + ny) % ny;
