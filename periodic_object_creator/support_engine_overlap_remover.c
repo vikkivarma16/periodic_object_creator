@@ -735,6 +735,9 @@ void relax_spherical_particles(
             rot_trials   = rot_accept   = 0;
         }
 
+
+
+
         // grid shifting in grid_shifting_rate steps     
         if(iter % grid_shifting_rate == 0){   // every grid_shifting_rate iterations
             // Choose one random direction: 0 = x, 1 = y, 2 = z
@@ -773,14 +776,13 @@ void relax_spherical_particles(
                     coords[3*i + 1] += shift[1];
                     coords[3*i + 2] += shift[2];
 
-                    coords[3*i]     = fmod(coords[3*i] + box[0], box[0]);
-                    coords[3*i + 1] = fmod(coords[3*i + 1] + box[1], box[1]);
-                    coords[3*i + 2] = fmod(coords[3*i + 2] + box[2], box[2]);
-
-                    if(coords[3*i] >= box[0]) coords[3*i] -= 1e-12;
-                    if(coords[3*i + 1] >= box[1]) coords[3*i + 1] -= 1e-12;
-                    if(coords[3*i + 2] >= box[2]) coords[3*i + 2] -= 1e-12;
-                }
+                    if(coords[3*i]<0.0) coords[3*i]+=box[0];
+                    else if (coords[3*i]>=box[0]) coords[3*i]-=box[0];
+                    if(coords[3*i+1]<0.0) coords[3*i+1]+=box[1];
+                    else if(coords[3*i+1]>=box[1]) coords[3*i+1]-=box[1];
+                    if(coords[3*i+2]<0.0) coords[3*i+2]+=box[2];
+                    else if(coords[3*i+2]>=box[2]) coords[3*i+2]-=box[2];
+                    }
 
                 /* ---------- Shift molecule COMs and wrap ---------- */
                 for(int i = 0; i < n_mol; i++){
@@ -799,7 +801,7 @@ void relax_spherical_particles(
 
                 /* ---------- Clear all cells ---------- */
                 for(int c = 0; c < nc; c++){
-                    for(int j = 0; j < grid[c].count; j++)
+                    for(int j = 0; j < grid[c].max_count; j++)
                         grid[c].idx[j] = -1;
                     grid[c].count = 0;
                 }
