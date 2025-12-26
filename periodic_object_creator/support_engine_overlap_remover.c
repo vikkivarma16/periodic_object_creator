@@ -750,6 +750,8 @@ void relax_spherical_particles(
 
 
             if(dx || dy || dz){
+            
+                printf("\nI am just checking |||||\n");
                 double shift[3] = {
                     dx * 0. * box[0],
                     dy * 0. * box[1],
@@ -790,13 +792,15 @@ void relax_spherical_particles(
                     mol_com[i][1] += shift[1];
                     mol_com[i][2] += shift[2];
 
-                    mol_com[i][0] = fmod(mol_com[i][0] + box[0], box[0]);
-                    mol_com[i][1] = fmod(mol_com[i][1] + box[1], box[1]);
-                    mol_com[i][2] = fmod(mol_com[i][2] + box[2], box[2]);
+                   
+                    if(mol_com[i][0] < 0.0) mol_com[i][0] += box[0];
+                    else if(mol_com[i][0] >= box[0]) mol_com[i][0] -= box[0];
 
-                    if(mol_com[i][0] >= box[0]) mol_com[i][0] -= 1e-12;
-                    if(mol_com[i][1] >= box[1]) mol_com[i][1] -= 1e-12;
-                    if(mol_com[i][2] >= box[2]) mol_com[i][2] -= 1e-12;
+                    if(mol_com[i][1] < 0.0) mol_com[i][1] += box[1];
+                    else if(mol_com[i][1] >= box[1]) mol_com[i][1] -= box[1];
+
+                    if(mol_com[i][2] < 0.0) mol_com[i][2] += box[2];
+                    else if(mol_com[i][2] >= box[2]) mol_com[i][2] -= box[2];
                 }
 
                 /* ---------- Clear all cells ---------- */
@@ -807,25 +811,34 @@ void relax_spherical_particles(
                 }
 
                 /* ---------- Rebuild grid safely ---------- */
+                
                 for(int i = 0; i < N; i++){
-                    int ix = (int)floor(coords[3*i] / cell_size);
-                    int iy = (int)floor(coords[3*i + 1] / cell_size);
-                    int iz = (int)floor(coords[3*i + 2] / cell_size);
+                int ix = (int)floor(coords[3*i] / cell_size);
+                int iy = (int)floor(coords[3*i + 1] / cell_size);
+                int iz = (int)floor(coords[3*i + 2] / cell_size);
 
-                    if(ix < 0) ix = 0; else if(ix >= nx) ix = nx-1;
-                    if(iy < 0) iy = 0; else if(iy >= ny) iy = ny-1;
-                    if(iz < 0) iz = 0; else if(iz >= nz) iz = nz-1;
+                if(ix < 0) ix = 0; else if(ix >= nx) ix = nx-1;
+                if(iy < 0) iy = 0; else if(iy >= ny) iy = ny-1;
+                if(iz < 0) iz = 0; else if(iz >= nz) iz = nz-1;
 
-                    int h = cell_hash(ix, iy, iz, nx, ny, nz);
-                    p_cell[i] = h;
+                int h = cell_hash(ix, iy, iz, nx, ny, nz);
 
-                    if(grid[h].count < grid[h].max_count){
-                        grid[h].idx[grid[h].count++] = i;
-                    } else {
-                        printf("Warning: Overflow during rebuild at cell %d\n", h);
-                    }
+                // Check if particle's cell changed
+                if(p_cell[i] != h){
+                    printf("Particle %d moved from cell %d to %d\n", i, p_cell[i], h);
                 }
 
+                p_cell[i] = h;
+
+                if(grid[h].count < grid[h].max_count){
+                    grid[h].idx[grid[h].count++] = i;
+                } else {
+                    printf("Warning: Overflow during rebuild at cell %d\n", h);
+                }
+            }
+
+                
+                
                 /* ---------- Build histogram AFTER shift ---------- */
                 int *hist_after = calloc(n_bins, sizeof(int));
                 if(!hist_after){ printf("Error allocating hist_after\n"); exit(1); }
@@ -848,6 +861,11 @@ void relax_spherical_particles(
                 free(hist_after);
             }
         }
+
+
+
+
+
 
 
 
