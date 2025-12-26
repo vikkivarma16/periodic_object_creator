@@ -274,6 +274,13 @@ void relax_spherical_particles(
     /* ---- molecule COM and relative coordinates ---- */
     double (*mol_com)[3] = malloc(n_mol * sizeof(*mol_com));
     
+    int *nmol_overl = malloc(n_mol * sizeof(int));
+    
+    for (int i = 0; i < n_mol; i++)
+    {
+          nmol_overl[i] = 100000;
+    }
+    
     
     /* ============================================================
    PREPROCESSING: unwrap molecules, compute COM, store geometry
@@ -540,7 +547,10 @@ void relax_spherical_particles(
             
             if(accept ==1 && nov>0){
             
-                if (flag_move ==1){
+                if (nov< nmol_overl[mol]){
+                      accept =1; 
+                }
+                else if (flag_move ==1){
             
                     cs[0]/=nov; cs[1]/=nov; cs[2]/=nov;
                     cso[0]/=nov; cso[1]/=nov; cso[2]/=nov;
@@ -616,6 +626,9 @@ void relax_spherical_particles(
                  
             }
             else{
+                
+                nmol_overl[mol] = nov;
+            
                 mol_overlap[mol]=(nov>0);
             
                 if(flag_move == 0) trans_accept++;
