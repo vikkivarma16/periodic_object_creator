@@ -752,14 +752,11 @@ void relax_spherical_particles(
                     coords[3*i]     += shift[0];
                     coords[3*i + 1] += shift[1];
                     coords[3*i + 2] += shift[2];
-
-                    // wrap back
-                    if(coords[3*i] < 0) coords[3*i] += box[0];
-                    if(coords[3*i] >= box[0]) coords[3*i] -= box[0];
-                    if(coords[3*i+1] < 0) coords[3*i+1] += box[1];
-                    if(coords[3*i+1] >= box[1]) coords[3*i+1] -= box[1];
-                    if(coords[3*i+2] < 0) coords[3*i+2] += box[2];
-                    if(coords[3*i+2] >= box[2]) coords[3*i+2] -= box[2];
+                    
+                    
+                    coords[3*i] = fmod(coords[3*i] + box[0], box[0]);
+                    coords[3*i+1] = fmod(coords[3*i+1]+ box[1], box[1]);
+                    coords[3*i + 2] = fmod(coords[3*i + 2] + box[2], box[2]);
                 }
                 
                  for(i = 0; i < n_mol; i++){
@@ -788,13 +785,10 @@ void relax_spherical_particles(
                     int iz = (int)(coords[3*i + 2] / cell_size);
                     
                     
-                    if(ix >= nx) ix = nx - 1;
-                    if(iy >= ny) iy = ny - 1;
-                    if(iz >= nz) iz = nz - 1;
-                    
-                    if(ix < 0) ix = 0;
-                    if(iy < 0) iy = 0;
-                    if(iz < 0) iz = 0;
+                      
+                    ix = (ix % nx + nx) % nx;
+                    iy = (iy % ny + ny) % ny;
+                    iz = (iz % nz + nz) % nz;
                     int h = cell_hash(ix, iy, iz, nx, ny, nz);
                     p_cell[i] = h;
                     if(grid[h].count < grid[h].max_count){
