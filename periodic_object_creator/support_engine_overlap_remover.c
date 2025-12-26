@@ -590,8 +590,26 @@ void relax_spherical_particles(
                 }
                 
                 
-                else {
+              
 
+                    
+
+                
+            }
+            
+            
+            if(!accept){
+            
+                memcpy(&coords[3*start], bak, 3*cnt*sizeof(double));
+                 
+            }
+            else{
+                
+                nmol_overl[mol] = nov;
+                mol_overlap[mol]=(nov>0);
+                
+                if (mol_overlap[mol]==1){
+                
                     // -------------------------------------------
                      //  Compute COM of overlapping molecules
                       // unwrapped w.r.t. moved molecule COM
@@ -641,21 +659,23 @@ void relax_spherical_particles(
                     next_tstep[mol][1] = step_trans*dx/mag;
                     next_tstep[mol][2] = step_trans*dx/mag;
                 }
-
                 
-            }
-            
-            
-            if(!accept){
-            
-                memcpy(&coords[3*start], bak, 3*cnt*sizeof(double));
-                 
-            }
-            else{
+                else 
                 
-                nmol_overl[mol] = nov;
-            
-                mol_overlap[mol]=(nov>0);
+                {
+                       random_unit(disp);
+                      disp[0] *= step_trans;
+                      disp[1] *= step_trans;
+                      disp[2] *= step_trans;
+                
+                      next_tstep[mol][0] =  disp[0];
+                       next_tstep[mol][1] =  disp[1];
+                        next_tstep[mol][2] =  disp[2];
+                
+                }
+                
+                
+                
             
                 if(flag_move == 0) trans_accept++;
                 else               rot_accept++;
