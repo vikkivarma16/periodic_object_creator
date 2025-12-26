@@ -52,14 +52,14 @@ basis = [[0.0000000, 0.000000,  0.00000, "O", 1, 1], [0.8164904, 0.5773590, 0.00
 
 tvector  = [0.8164904, 0.0, 0.0]
 basis = translator (basis, tvector)
-box_size =  [100.0, 100.0, 100.0]
+box_size =  [100, 100, 100]
 
 particle_size = 3.15
 
 particle_volume  =  particle_size**3 * acos(-1)/6
 
 
-packing_fraction  = 0.4
+packing_fraction  = 0.6
 rho  =  packing_fraction/particle_volume
 
 print("\n\nComputed density for the water packing fraction,", packing_fraction, "is given as:  ",   rho, "\n\n")
@@ -146,7 +146,7 @@ mol_idx  =  7
 mol_type_idx = 5
 particle_type_idx = 4
 
-sigma_matrix =  [[0.01, 1.6], [1.6, 3.2]]
+
 
 moving_mol_id  = []
 for i in range(len(input_object)):
@@ -154,15 +154,22 @@ for i in range(len(input_object)):
     
 box  =  box_size
 
-cell_size =  (100.0/95.0)
 
 
 iter_max  =  10000000
-translation_step  =  0.5
-rotation_step  =  0.5
 
 
-water_final = overlap_remover(input_object, mol_idx, particle_idx, mol_type_idx, particle_type_idx, sigma_matrix, moving_mol_id, box, cell_size, iter_max, translation_step, rotation_step, grid_shifting_rate=10)
+
+sigma_matrix =  [[3.2, 0.01], [0.01, 0.01]]
+n= int (100/3.3)
+cell_size =  (100.0/float(n))
+
+translation_step  =  0.1
+rotation_step  =  0.1
+
+
+water_final = overlap_remover(input_object, mol_idx, particle_idx, mol_type_idx, particle_type_idx, sigma_matrix, moving_mol_id, box, cell_size, iter_max, translation_step, rotation_step, max_particles_per_cell=64,  grid_shifting_rate=10000)
+
 
 
 
