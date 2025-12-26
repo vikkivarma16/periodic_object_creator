@@ -550,7 +550,10 @@ void relax_spherical_particles(
             if(accept ==1 && nov>0){
             
                 if (nov< nmol_overl[mol]){
-                      accept =1; 
+                      accept = 1; 
+                }
+                else if (nov> nmol_overl[mol]) {
+                      accept = 0; 
                 }
                 else {
             
