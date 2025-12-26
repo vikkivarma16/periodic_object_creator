@@ -748,9 +748,9 @@ void relax_spherical_particles(
 
             if(dx || dy || dz){
                 double shift[3] = {
-                    dx * 0.47 * box[0],
-                    dy * 0.47 * box[1],
-                    dz * 0.47 * box[2]
+                    dx * 0. * box[0],
+                    dy * 0. * box[1],
+                    dz * 0. * box[2]
                 };
 
                 /* ---------- Build histogram BEFORE shift ---------- */
