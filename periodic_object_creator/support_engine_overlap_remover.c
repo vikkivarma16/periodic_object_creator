@@ -822,6 +822,8 @@ void relax_spherical_particles(
 
 
                 // ---------- Clear all cells ----------
+                
+                /*
                 for(int c = 0; c < nc; c++){
                     for(int j = 0; j < max_particles_per_cell; j++)
                         grid[c].idx[j] = -1;
@@ -851,7 +853,7 @@ void relax_spherical_particles(
                       } else {
                           printf("Warning: Overflow during rebuild at cell %d\n", h);
                       }
-                  } ///
+                  } //*/
 
                 
                 
