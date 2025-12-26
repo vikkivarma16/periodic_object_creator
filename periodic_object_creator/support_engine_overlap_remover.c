@@ -568,11 +568,7 @@ void relax_spherical_particles(
             
             if(accept ==1 && nov>0){
             
-                if (nov< nmol_overl[mol]){
-                      accept = 1; 
-                }
-              
-                else if (flag_move==1) {
+              if (flag_move==1) {
             
                     cs[0]/=nov; cs[1]/=nov; cs[2]/=nov;
                     cso[0]/=nov; cso[1]/=nov; cso[2]/=nov;
@@ -686,9 +682,6 @@ void relax_spherical_particles(
                             exit(0);
                             
                         }
-
-                        
-                        
                         
                         // Add i to new cell
                         if(grid[nw].count < max_particles_per_cell){
