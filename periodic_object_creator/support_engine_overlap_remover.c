@@ -736,7 +736,7 @@ void relax_spherical_particles(
         }
 
         // grid shifting in grid_shifting_rate steps     
-        if(iter % grid_shifting_rate == 0){   // every 10 iterations
+        if(iter % grid_shifting_rate == 0){   // every grid_shifting_rate iterations
             int dx = (rand() % 3) - 1;
             int dy = (rand() % 3) - 1;
             int dz = (rand() % 3) - 1;
@@ -748,55 +748,64 @@ void relax_spherical_particles(
                     dz * 0.5 * box[2]
                 };
 
+                // Shift all particle coordinates and wrap back into box
                 for(i = 0; i < N; i++){
                     coords[3*i]     += shift[0];
                     coords[3*i + 1] += shift[1];
                     coords[3*i + 2] += shift[2];
-                    
-                    
-                    coords[3*i] = fmod(coords[3*i] + box[0], box[0]);
-                    coords[3*i+1] = fmod(coords[3*i+1]+ box[1], box[1]);
+
+                    // Wrap with fmod and clamp to avoid hitting box boundary
+                    coords[3*i]     = fmod(coords[3*i] + box[0], box[0]);
+                    coords[3*i + 1] = fmod(coords[3*i + 1] + box[1], box[1]);
                     coords[3*i + 2] = fmod(coords[3*i + 2] + box[2], box[2]);
+
+                    // Tiny epsilon to avoid exactly box[?] coordinate
+                    if(coords[3*i] >= box[0]) coords[3*i] -= 1e-12;
+                    if(coords[3*i + 1] >= box[1]) coords[3*i + 1] -= 1e-12;
+                    if(coords[3*i + 2] >= box[2]) coords[3*i + 2] -= 1e-12;
                 }
-                
-                 for(i = 0; i < n_mol; i++){
-                    mol_com[i][0]     += shift[0];
-                     mol_com[i][1]     += shift[1];
-                      mol_com[i][2]     += shift[2];
-                    // wrap back
+
+                // Shift all molecule COMs and wrap back
+                for(i = 0; i < n_mol; i++){
+                    mol_com[i][0] += shift[0];
+                    mol_com[i][1] += shift[1];
+                    mol_com[i][2] += shift[2];
+
                     mol_com[i][0] = fmod(mol_com[i][0] + box[0], box[0]);
                     mol_com[i][1] = fmod(mol_com[i][1] + box[1], box[1]);
                     mol_com[i][2] = fmod(mol_com[i][2] + box[2], box[2]);
-                }
-                
-                
 
-                /* rebuild grid safely */
-                for(int i = 0; i < nc; i++){
-                    grid[i].count = 0;
+                    if(mol_com[i][0] >= box[0]) mol_com[i][0] -= 1e-12;
+                    if(mol_com[i][1] >= box[1]) mol_com[i][1] -= 1e-12;
+                    if(mol_com[i][2] >= box[2]) mol_com[i][2] -= 1e-12;
+                }
+
+                // Clear all cells
+                for(int c = 0; c < nc; c++){
+                    grid[c].count = 0;
                     for(int j = 0; j < max_particles_per_cell; j++)
-                        grid[i].idx[j] = -1;  // mark all slots as "empty"
+                        grid[c].idx[j] = -1;  // mark all slots as empty
                 }
-                
 
+                // Rebuild grid safely
                 for(i = 0; i < N; i++){
-                    int ix = (int)(coords[3*i]     / cell_size);
-                    int iy = (int)(coords[3*i + 1] / cell_size);
-                    int iz = (int)(coords[3*i + 2] / cell_size);
-                    
-                    if (ix <0 || iy < 0 || iz <0) printf("negative cell number encountered\n\n\n");
-                      
-                    ix = (ix % nx + nx) % nx;
-                    iy = (iy % ny + ny) % ny;
-                    iz = (iz % nz + nz) % nz;
+                    int ix = (int)floor(coords[3*i] / cell_size);
+                    int iy = (int)floor(coords[3*i + 1] / cell_size);
+                    int iz = (int)floor(coords[3*i + 2] / cell_size);
+
+                    // Clamp indices to valid range [0, nx-1], etc.
+                    if(ix < 0) ix = 0; else if(ix >= nx) ix = nx-1;
+                    if(iy < 0) iy = 0; else if(iy >= ny) iy = ny-1;
+                    if(iz < 0) iz = 0; else if(iz >= nz) iz = nz-1;
+
                     int h = cell_hash(ix, iy, iz, nx, ny, nz);
                     p_cell[i] = h;
+
                     if(grid[h].count < grid[h].max_count){
                         grid[h].idx[grid[h].count++] = i;
                     } else {
-                        printf("Overflow during rebuild: cell %d\n", h);
+                        printf("Warning: Overflow during rebuild at cell %d\n", h);
                     }
-
                 }
             }
         }
