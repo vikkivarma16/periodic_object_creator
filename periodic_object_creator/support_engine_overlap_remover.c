@@ -802,11 +802,14 @@ void relax_spherical_particles(
                 
                 /* ---------- Shift molecule COMs and wrap ---------- */
                 for(int i = 0; i < n_mol; i++){
+                    double old_x = mol_com[i][0];
+                    double old_y = mol_com[i][1];
+                    double old_z = mol_com[i][2];
+
                     mol_com[i][0] += shift[0];
                     mol_com[i][1] += shift[1];
                     mol_com[i][2] += shift[2];
 
-                   
                     if(mol_com[i][0] < 0.0) mol_com[i][0] += box[0];
                     else if(mol_com[i][0] >= box[0]) mol_com[i][0] -= box[0];
 
@@ -815,7 +818,14 @@ void relax_spherical_particles(
 
                     if(mol_com[i][2] < 0.0) mol_com[i][2] += box[2];
                     else if(mol_com[i][2] >= box[2]) mol_com[i][2] -= box[2];
+
+                    // Check if COM actually changed
+                    if(mol_com[i][0] != old_x || mol_com[i][1] != old_y || mol_com[i][2] != old_z){
+                        printf("Molecule %d COM changed: (%.6f, %.6f, %.6f) -> (%.6f, %.6f, %.6f)\n",
+                               i, old_x, old_y, old_z, mol_com[i][0], mol_com[i][1], mol_com[i][2]);
+                    }
                 }
+
 
                 /* ---------- Clear all cells ---------- */
                 for(int c = 0; c < nc; c++){
