@@ -737,9 +737,9 @@ void relax_spherical_particles(
 
         // grid shifting in grid_shifting_rate steps     
         if(iter % grid_shifting_rate == 0){   // every grid_shifting_rate iterations
-            int dx = (rand() % 2) ;
-            int dy = (rand() % 2) ;
-            int dz = (rand() % 2) ;
+            int dx = (rand() % 2);
+            int dy = (rand() % 2);
+            int dz = (rand() % 2);
 
             if(dx || dy || dz){
                 double shift[3] = {
@@ -748,24 +748,36 @@ void relax_spherical_particles(
                     dz * 0.4 * box[2]
                 };
 
-                // Shift all particle coordinates and wrap back into box
+                /* ---------- Build histogram BEFORE shift ---------- */
+                int bin_div = 10;   // adjustable bin divisor
+                int max_occ = max_particles_per_cell;
+                int n_bins = max_occ / bin_div + 1;
+                int *hist_before = calloc(n_bins, sizeof(int));
+                if(!hist_before){ printf("Error allocating hist_before\n"); exit(1); }
+
+                for(int c = 0; c < nc; c++){
+                    int occ = grid[c].count;
+                    int bin = occ / bin_div;
+                    if(bin >= n_bins) bin = n_bins - 1;
+                    hist_before[bin]++;
+                }
+
+                /* ---------- Shift all particle coordinates and wrap ---------- */
                 for(int i = 0; i < N; i++){
                     coords[3*i]     += shift[0];
                     coords[3*i + 1] += shift[1];
                     coords[3*i + 2] += shift[2];
 
-                    // Wrap with fmod and clamp to avoid hitting box boundary
                     coords[3*i]     = fmod(coords[3*i] + box[0], box[0]);
                     coords[3*i + 1] = fmod(coords[3*i + 1] + box[1], box[1]);
                     coords[3*i + 2] = fmod(coords[3*i + 2] + box[2], box[2]);
 
-                    // Tiny epsilon to avoid exactly box[?] coordinate
                     if(coords[3*i] >= box[0]) coords[3*i] -= 1e-12;
                     if(coords[3*i + 1] >= box[1]) coords[3*i + 1] -= 1e-12;
                     if(coords[3*i + 2] >= box[2]) coords[3*i + 2] -= 1e-12;
                 }
 
-                // Shift all molecule COMs and wrap back
+                /* ---------- Shift molecule COMs and wrap ---------- */
                 for(int i = 0; i < n_mol; i++){
                     mol_com[i][0] += shift[0];
                     mol_com[i][1] += shift[1];
@@ -780,22 +792,19 @@ void relax_spherical_particles(
                     if(mol_com[i][2] >= box[2]) mol_com[i][2] -= 1e-12;
                 }
 
-                // Clear all cells
+                /* ---------- Clear all cells ---------- */
                 for(int c = 0; c < nc; c++){
-                    
                     for(int j = 0; j < grid[c].count; j++)
-                        grid[c].idx[j] = -1;  // mark all slots as empty
-                        
+                        grid[c].idx[j] = -1;
                     grid[c].count = 0;
                 }
 
-                // Rebuild grid safely
+                /* ---------- Rebuild grid safely ---------- */
                 for(int i = 0; i < N; i++){
                     int ix = (int)floor(coords[3*i] / cell_size);
                     int iy = (int)floor(coords[3*i + 1] / cell_size);
                     int iz = (int)floor(coords[3*i + 2] / cell_size);
 
-                    // Clamp indices to valid range [0, nx-1], etc.
                     if(ix < 0) ix = 0; else if(ix >= nx) ix = nx-1;
                     if(iy < 0) iy = 0; else if(iy >= ny) iy = ny-1;
                     if(iz < 0) iz = 0; else if(iz >= nz) iz = nz-1;
@@ -809,10 +818,30 @@ void relax_spherical_particles(
                         printf("Warning: Overflow during rebuild at cell %d\n", h);
                     }
                 }
-                
-                
+
+                /* ---------- Build histogram AFTER shift ---------- */
+                int *hist_after = calloc(n_bins, sizeof(int));
+                if(!hist_after){ printf("Error allocating hist_after\n"); exit(1); }
+
+                for(int c = 0; c < nc; c++){
+                    int occ = grid[c].count;
+                    int bin = occ / bin_div;
+                    if(bin >= n_bins) bin = n_bins - 1;
+                    hist_after[bin]++;
+                }
+
+                /* ---------- Print histogram change ---------- */
+                printf("\nGrid shift applied: dx=%d dy=%d dz=%d\n", dx, dy, dz);
+                printf("Bin\tBefore\tAfter\tChange\n");
+                for(int b = 0; b < n_bins; b++){
+                    printf("%d\t%d\t%d\t%d\n", b, hist_before[b], hist_after[b], hist_after[b]-hist_before[b]);
+                }
+
+                free(hist_before);
+                free(hist_after);
             }
         }
+
 
 
         if(iter % 100 == 0) { // update every trial step
