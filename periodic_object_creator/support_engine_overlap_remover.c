@@ -126,10 +126,20 @@ void relax_spherical_particles(
     for(int m=0;m<n_mol;m++) mol_overlap[m] = 1;
 
     /* ---------------- grid ---------------- */
-    int nx = (int)(box[0]/cell_size);
-    int ny = (int)(box[1]/cell_size);
-    int nz = (int)(box[2]/cell_size);
-    cell_size =  box[0]/(float)nx;
+    int nx = (int)floor(box[0]/cell_size);
+    int ny = (int)floor(box[1]/cell_size);
+    int nz = (int)floor(box[2]/cell_size);
+    
+    double cell_sizex =  box[0]/(float)nx;
+    box[0] =  cell_sizex*(float)nx;
+    
+    double cell_sizey =  box[1]/(float)ny;
+    box[1] =  cell_sizey*(float)ny;
+    
+    double cell_sizez =  box[2]/(float)nz;
+    box[2] =  cell_sizez*(float)nz;
+    
+    
     int nc = nx*ny*nz;
 
   
@@ -172,9 +182,9 @@ void relax_spherical_particles(
 
     /* ---------------- initial cell build ---------------- */
     for(int i=0;i<N;i++){
-        int ix = (int)floor(coords[3*i]   / cell_size);
-        int iy = (int)floor(coords[3*i+1] / cell_size);
-        int iz = (int)floor(coords[3*i+2] / cell_size);
+        int ix = (int)floor(coords[3*i]   / cell_sizex);
+        int iy = (int)floor(coords[3*i+1] / cell_sizey);
+        int iz = (int)floor(coords[3*i+2] / cell_sizez);
         
         
 
@@ -461,9 +471,9 @@ void relax_spherical_particles(
 
               
 
-                ix=(int)floor(coords[3*i]/cell_size);
-                iy=(int)floor(coords[3*i+1]/cell_size);
-                iz=(int)floor(coords[3*i+2]/cell_size);
+                ix=(int)floor(coords[3*i]/cell_sizex);
+                iy=(int)floor(coords[3*i+1]/cell_sizey);
+                iz=(int)floor(coords[3*i+2]/cell_sizez);
                  
                
                 new_cell[k]=cell_hash(ix,iy,iz,nx,ny,nz);
@@ -760,9 +770,9 @@ void relax_spherical_particles(
                
                 
                 for(int it = 0; it < N; it++){
-                    int ix = (int)floor(coords[3*it] / cell_size);
-                    int iy = (int)floor(coords[3*it + 1] / cell_size);
-                    int iz = (int)floor(coords[3*it + 2] / cell_size);
+                    int ix = (int)floor(coords[3*it] / cell_sizex);
+                    int iy = (int)floor(coords[3*it + 1] / cell_sizey);
+                    int iz = (int)floor(coords[3*it + 2] / cell_sizez);
 
   
 
