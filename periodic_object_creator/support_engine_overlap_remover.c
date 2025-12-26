@@ -347,7 +347,7 @@ void relax_spherical_particles(
   const int adapt_interval = 100;   // how often to adapt
   const double acc_low  = 0.30;
   const double acc_high = 0.50;
-  const double step_min = 0.005;
+  const double step_min = 0.01;
 
     
     
