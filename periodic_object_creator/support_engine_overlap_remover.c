@@ -571,9 +571,7 @@ void relax_spherical_particles(
                 if (nov< nmol_overl[mol]){
                       accept = 1; 
                 }
-                else if (nov> nmol_overl[mol]) {
-                      accept = 0; 
-                }
+              
                 else if (flag_move==1) {
             
                     cs[0]/=nov; cs[1]/=nov; cs[2]/=nov;
@@ -589,27 +587,8 @@ void relax_spherical_particles(
                         accept=0;
                 }
                 
-                
-              
+                else {
 
-                    
-
-                
-            }
-            
-            
-            if(!accept){
-            
-                memcpy(&coords[3*start], bak, 3*cnt*sizeof(double));
-                 
-            }
-            else{
-                
-                nmol_overl[mol] = nov;
-                mol_overlap[mol]=(nov>0);
-                
-                if (mol_overlap[mol]==1){
-                
                     // -------------------------------------------
                      //  Compute COM of overlapping molecules
                       // unwrapped w.r.t. moved molecule COM
@@ -621,9 +600,9 @@ void relax_spherical_particles(
                     };
 
                     // wrap reference COM just to be safe 
-                    ref_com[0] = fmod(ref_com[0] + disp [0] + box[0], box[0]);
-                    ref_com[1] = fmod(ref_com[1] + disp [1] + box[1], box[1]);
-                    ref_com[2] = fmod(ref_com[2] + disp [2] + box[2], box[2]);
+                    //ref_com[0] = fmod(ref_com[0] + box[0], box[0]);
+                    //ref_com[1] = fmod(ref_com[1] + box[1], box[1]);
+                    //ref_com[2] = fmod(ref_com[2] + box[2], box[2]);
 
                     com[0] = com[1] = com[2] = 0.0;
 
@@ -654,28 +633,26 @@ void relax_spherical_particles(
                     double dx = ref_com[0] - com[0];
                     double dy = ref_com[1] - com[1];
                     double dz = ref_com[2] - com[2];
-                    double mag  =  sqrt (dx*dx + dy*dy + dz*dz) ;
-                    next_tstep[mol][0] = step_trans*dx/mag;
-                    next_tstep[mol][1] = step_trans*dx/mag;
-                    next_tstep[mol][2] = step_trans*dx/mag;
+
+                    if(disp[0]*dx + disp[1]*dy + disp[2]*dz < 0.0)
+                        accept = 0;
+                      
                 }
+
                 
-                else 
+            }
+            
+            
+            if(!accept){
+            
+                memcpy(&coords[3*start], bak, 3*cnt*sizeof(double));
+                 
+            }
+            else{
                 
-                {
-                       random_unit(disp);
-                      disp[0] *= step_trans;
-                      disp[1] *= step_trans;
-                      disp[2] *= step_trans;
-                
-                      next_tstep[mol][0] =  disp[0];
-                       next_tstep[mol][1] =  disp[1];
-                        next_tstep[mol][2] =  disp[2];
-                
-                }
-                
-                
-                
+                nmol_overl[mol] = nov;
+            
+                mol_overlap[mol]=(nov>0);
             
                 if(flag_move == 0) trans_accept++;
                 else               rot_accept++;
