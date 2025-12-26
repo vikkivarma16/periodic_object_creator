@@ -861,7 +861,10 @@ void relax_spherical_particles(
 
                 free(hist_before);
                 free(hist_after);
+                for(int m=0;m<n_mol;m++) mol_overlap[m] = 1;
+            
             }
+            
         }
 
 
