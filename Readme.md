@@ -279,8 +279,8 @@ Efficiently removes **overlaps between molecules** in a 3D periodic simulation b
 | `box`                    | list of 3 floats              | Simulation box dimensions `[Lx, Ly, Lz]`.                                                                                |
 | `cell_size`              | float                         | Size of each spatial grid cell. Typically `~1.5 * max(sigma)`such that cell_size*N_cell = box_length.                    |
 | `iter_max`               | int                           | Maximum number of iterations for overlap relaxation.                                                                     |
-| `translation_step`       | float                         | Minimum translation step size for molecules, where initiation is done with max =0.5.                                     |
-| `rotation_step`          | float                         | Minimum rotational step size for molecules, where initiation is done with max =0.5.                                      |
+| `translation_step`       | float                         | Maximum translation step size for molecules, where initiation is done with supplied max, min = 0.01.                     |
+| `rotation_step`          | float                         | Maximum rotational step size for molecules, where initiation is done with supplied max, min = 0.01.                      |
 | `max_particles_per_cell` | int, optional, default=64     | Maximum number of particles per spatial cell.                                                                            |
 | `grid_shifting_rate`     | int, optional, default=100000 | Number of iterations between random grid shifts to avoid periodic artifacts.                                             |
 

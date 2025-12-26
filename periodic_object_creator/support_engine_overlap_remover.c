@@ -567,9 +567,9 @@ void relax_spherical_particles(
                     };
 
                     /* wrap reference COM just to be safe */
-                    //ref_com[0] = fmod(ref_com[0] + box[0], box[0]);
-                    //ref_com[1] = fmod(ref_com[1] + box[1], box[1]);
-                    //ref_com[2] = fmod(ref_com[2] + box[2], box[2]);
+                    ref_com[0] = fmod(ref_com[0] + box[0], box[0]);
+                    ref_com[1] = fmod(ref_com[1] + box[1], box[1]);
+                    ref_com[2] = fmod(ref_com[2] + box[2], box[2]);
 
                     com[0] = com[1] = com[2] = 0.0;
 
