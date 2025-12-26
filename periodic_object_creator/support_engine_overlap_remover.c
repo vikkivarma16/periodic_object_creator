@@ -172,14 +172,11 @@ void relax_spherical_particles(
 
     /* ---------------- initial cell build ---------------- */
     for(int i=0;i<N;i++){
-        int ix = (int)(coords[3*i]   / cell_size);
-        int iy = (int)(coords[3*i+1] / cell_size);
-        int iz = (int)(coords[3*i+2] / cell_size);
+        int ix = (int)floor(coords[3*i]   / cell_size);
+        int iy = (int)floor(coords[3*i+1] / cell_size);
+        int iz = (int)floor(coords[3*i+2] / cell_size);
         
         
-        ix = (ix % nx + nx) % nx;
-        iy = (iy % ny + ny) % ny;
-        iz = (iz % nz + nz) % nz;
 
         
         
@@ -471,9 +468,9 @@ void relax_spherical_particles(
                 if(coords[3*i+2]<0.0) coords[3*i+2]+=box[2];
                 else if(coords[3*i+2]>=box[2]) coords[3*i+2]-=box[2];
 
-                ix=(int)(coords[3*i]/cell_size);
-                iy=(int)(coords[3*i+1]/cell_size);
-                iz=(int)(coords[3*i+2]/cell_size);
+                ix=(int)floor(coords[3*i]/cell_size);
+                iy=(int)floor(coords[3*i+1]/cell_size);
+                iz=(int)floor(coords[3*i+2]/cell_size);
                  
                
 
@@ -838,9 +835,7 @@ void relax_spherical_particles(
                       int iy = (int)floor(coords[3*it + 1] / cell_size);
                       int iz = (int)floor(coords[3*it + 2] / cell_size);
 
-                      if(ix < 0) ix = 0; else if(ix >= nx) ix = nx-1;
-                      if(iy < 0) iy = 0; else if(iy >= ny) iy = ny-1;
-                      if(iz < 0) iz = 0; else if(iz >= nz) iz = nz-1;
+    
 
                       int h = cell_hash(ix, iy, iz, nx, ny, nz);
 
