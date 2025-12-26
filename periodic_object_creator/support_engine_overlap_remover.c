@@ -747,9 +747,9 @@ void relax_spherical_particles(
             
                 printf("\nI am just checking |||||\n");
                 double shift[3] = {
-                    dx * 0. * box[0],
-                    dy * 0. * box[1],
-                    dz * 0. * box[2]
+                    dx * 0.43 * box[0],
+                    dy * 0.43 * box[1],
+                    dz * 0.43 * box[2]
                 };
 
                 /* ---------- Build histogram BEFORE shift ---------- */
@@ -767,7 +767,7 @@ void relax_spherical_particles(
                 }
 
                 /* ---------- Shift all particle coordinates and wrap ---------- */
-                /*
+                
                 for(int i = 0; i < N; i++){
                     double old_x = coords[3*i];
                     double old_y = coords[3*i+1];
@@ -818,12 +818,12 @@ void relax_spherical_particles(
                       printf("Molecule %d COM changed: (%.6f, %.6f, %.6f) -> (%.6f, %.6f, %.6f)\n",
                              i, old_x, old_y, old_z, mol_com[i][0], mol_com[i][1], mol_com[i][2]);
                   }
-              }*/
+              }
 
 
                 // ---------- Clear all cells ----------
                 
-                /*
+                
                 for(int c = 0; c < nc; c++){
                     for(int j = 0; j < max_particles_per_cell; j++)
                         grid[c].idx[j] = -1;
@@ -853,7 +853,7 @@ void relax_spherical_particles(
                       } else {
                           printf("Warning: Overflow during rebuild at cell %d\n", h);
                       }
-                  } //*/
+                  } 
 
                 
                 
