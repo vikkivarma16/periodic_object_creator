@@ -802,64 +802,64 @@ void relax_spherical_particles(
                 
                 /* ---------- Shift molecule COMs and wrap ---------- */
                 for(int i = 0; i < n_mol; i++){
-                    double old_x = mol_com[i][0];
-                    double old_y = mol_com[i][1];
-                    double old_z = mol_com[i][2];
+                  double old_x = mol_com[i][0];
+                  double old_y = mol_com[i][1];
+                  double old_z = mol_com[i][2];
 
-                    mol_com[i][0] += shift[0];
-                    mol_com[i][1] += shift[1];
-                    mol_com[i][2] += shift[2];
+                  mol_com[i][0] += shift[0];
+                  mol_com[i][1] += shift[1];
+                  mol_com[i][2] += shift[2];
 
-                    if(mol_com[i][0] < 0.0) mol_com[i][0] += box[0];
-                    else if(mol_com[i][0] >= box[0]) mol_com[i][0] -= box[0];
+                  if(mol_com[i][0] < 0.0) mol_com[i][0] += box[0];
+                  else if(mol_com[i][0] >= box[0]) mol_com[i][0] -= box[0];
 
-                    if(mol_com[i][1] < 0.0) mol_com[i][1] += box[1];
-                    else if(mol_com[i][1] >= box[1]) mol_com[i][1] -= box[1];
+                  if(mol_com[i][1] < 0.0) mol_com[i][1] += box[1];
+                  else if(mol_com[i][1] >= box[1]) mol_com[i][1] -= box[1];
 
-                    if(mol_com[i][2] < 0.0) mol_com[i][2] += box[2];
-                    else if(mol_com[i][2] >= box[2]) mol_com[i][2] -= box[2];
+                  if(mol_com[i][2] < 0.0) mol_com[i][2] += box[2];
+                  else if(mol_com[i][2] >= box[2]) mol_com[i][2] -= box[2];
 
-                    // Check if COM actually changed
-                    if(mol_com[i][0] != old_x || mol_com[i][1] != old_y || mol_com[i][2] != old_z){
-                        printf("Molecule %d COM changed: (%.6f, %.6f, %.6f) -> (%.6f, %.6f, %.6f)\n",
-                               i, old_x, old_y, old_z, mol_com[i][0], mol_com[i][1], mol_com[i][2]);
-                    }
-                }
+                  // Check if COM actually changed
+                  if(mol_com[i][0] != old_x || mol_com[i][1] != old_y || mol_com[i][2] != old_z){
+                      printf("Molecule %d COM changed: (%.6f, %.6f, %.6f) -> (%.6f, %.6f, %.6f)\n",
+                             i, old_x, old_y, old_z, mol_com[i][0], mol_com[i][1], mol_com[i][2]);
+                  }
+              }
 
 
-                /* ---------- Clear all cells ---------- */
+                /* ---------- Clear all cells ----------
                 for(int c = 0; c < nc; c++){
                     for(int j = 0; j < grid[c].max_count; j++)
                         grid[c].idx[j] = -1;
                     grid[c].count = 0;
                 }
 
-                /* ---------- Rebuild grid safely ---------- */
+               
                 
                 for(int i = 0; i < N; i++){
-                int ix = (int)floor(coords[3*i] / cell_size);
-                int iy = (int)floor(coords[3*i + 1] / cell_size);
-                int iz = (int)floor(coords[3*i + 2] / cell_size);
+                      int ix = (int)floor(coords[3*i] / cell_size);
+                      int iy = (int)floor(coords[3*i + 1] / cell_size);
+                      int iz = (int)floor(coords[3*i + 2] / cell_size);
 
-                if(ix < 0) ix = 0; else if(ix >= nx) ix = nx-1;
-                if(iy < 0) iy = 0; else if(iy >= ny) iy = ny-1;
-                if(iz < 0) iz = 0; else if(iz >= nz) iz = nz-1;
+                      if(ix < 0) ix = 0; else if(ix >= nx) ix = nx-1;
+                      if(iy < 0) iy = 0; else if(iy >= ny) iy = ny-1;
+                      if(iz < 0) iz = 0; else if(iz >= nz) iz = nz-1;
 
-                int h = cell_hash(ix, iy, iz, nx, ny, nz);
+                      int h = cell_hash(ix, iy, iz, nx, ny, nz);
 
-                // Check if particle's cell changed
-                if(p_cell[i] != h){
-                    printf("Particle %d moved from cell %d to %d\n", i, p_cell[i], h);
-                }
+                      // Check if particle's cell changed
+                      if(p_cell[i] != h){
+                          printf("Particle %d moved from cell %d to %d\n", i, p_cell[i], h);
+                      }
 
-                p_cell[i] = h;
+                      p_cell[i] = h;
 
-                if(grid[h].count < grid[h].max_count){
-                    grid[h].idx[grid[h].count++] = i;
-                } else {
-                    printf("Warning: Overflow during rebuild at cell %d\n", h);
-                }
-            }
+                      if(grid[h].count < grid[h].max_count){
+                          grid[h].idx[grid[h].count++] = i;
+                      } else {
+                          printf("Warning: Overflow during rebuild at cell %d\n", h);
+                      }
+                  } */
 
                 
                 
