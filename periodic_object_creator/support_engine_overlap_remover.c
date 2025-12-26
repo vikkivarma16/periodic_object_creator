@@ -773,19 +773,33 @@ void relax_spherical_particles(
                 }
 
                 /* ---------- Shift all particle coordinates and wrap ---------- */
+                
                 for(int i = 0; i < N; i++){
+                    double old_x = coords[3*i];
+                    double old_y = coords[3*i+1];
+                    double old_z = coords[3*i+2];
+
                     coords[3*i]     += shift[0];
                     coords[3*i + 1] += shift[1];
                     coords[3*i + 2] += shift[2];
 
                     if(coords[3*i]<0.0) coords[3*i]+=box[0];
                     else if (coords[3*i]>=box[0]) coords[3*i]-=box[0];
+
                     if(coords[3*i+1]<0.0) coords[3*i+1]+=box[1];
                     else if(coords[3*i+1]>=box[1]) coords[3*i+1]-=box[1];
+
                     if(coords[3*i+2]<0.0) coords[3*i+2]+=box[2];
                     else if(coords[3*i+2]>=box[2]) coords[3*i+2]-=box[2];
-                    }
 
+                    // Check if coordinate actually changed
+                    if(coords[3*i] != old_x || coords[3*i+1] != old_y || coords[3*i+2] != old_z){
+                        printf("Particle %d coordinates changed: (%.6f, %.6f, %.6f) -> (%.6f, %.6f, %.6f)\n",
+                               i, old_x, old_y, old_z, coords[3*i], coords[3*i+1], coords[3*i+2]);
+                    }
+                }
+
+                
                 /* ---------- Shift molecule COMs and wrap ---------- */
                 for(int i = 0; i < n_mol; i++){
                     mol_com[i][0] += shift[0];
