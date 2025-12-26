@@ -704,7 +704,7 @@ void relax_spherical_particles(
         
         
         /* ---------- adaptive step control ---------- */
-        if((iter * trials) % adapt_interval == 0 && (trans_trials + rot_trials) > 0){
+        if(iter % adapt_interval == 0 && (trans_trials + rot_trials) > 0){
 
             
 
