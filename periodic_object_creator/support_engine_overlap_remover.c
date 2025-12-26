@@ -552,7 +552,7 @@ void relax_spherical_particles(
                 if (nov< nmol_overl[mol]){
                       accept =1; 
                 }
-                else if (flag_move ==1){
+                else {
             
                     cs[0]/=nov; cs[1]/=nov; cs[2]/=nov;
                     cso[0]/=nov; cso[1]/=nov; cso[2]/=nov;
@@ -566,19 +566,21 @@ void relax_spherical_particles(
                     if(disp[0]*v[0]+disp[1]*v[1]+disp[2]*v[2]<0.0)
                         accept=0;
                 }
-                else {
+                
+                
+                /* else {
 
-                    /* -------------------------------------------
-                       Compute COM of overlapping molecules
-                       unwrapped w.r.t. moved molecule COM
-                       ------------------------------------------- */
+                    // -------------------------------------------
+                     //  Compute COM of overlapping molecules
+                      // unwrapped w.r.t. moved molecule COM
+                       //------------------------------------------- 
                     double ref_com[3] = {
                         mol_com[mol][0],
                         mol_com[mol][1],
                         mol_com[mol][2]
                     };
 
-                    /* wrap reference COM just to be safe */
+                    // wrap reference COM just to be safe 
                     //ref_com[0] = fmod(ref_com[0] + box[0], box[0]);
                     //ref_com[1] = fmod(ref_com[1] + box[1], box[1]);
                     //ref_com[2] = fmod(ref_com[2] + box[2], box[2]);
@@ -588,8 +590,8 @@ void relax_spherical_particles(
                     for(j = 0; j < n_over_mol; j++){
                         int m2 = overlapping_mol[j];
 
-                        /* unwrap overlapping molecule COM
-                           relative to reference COM */
+                        //unwrap overlapping molecule COM
+                           //relative to reference COM 
                         double ux = ref_com[0] +
                                     min_image(mol_com[m2][0] - ref_com[0], box[0]);
                         double uy = ref_com[1] +
@@ -606,9 +608,9 @@ void relax_spherical_particles(
                     com[1] /= n_over_mol;
                     com[2] /= n_over_mol;
 
-                    /* -------------------------------------------
-                       Directional acceptance test
-                       ------------------------------------------- */
+                    // -------------------------------------------
+                     //  Directional acceptance test
+                      // ------------------------------------------- 
                     double dx = ref_com[0] - com[0];
                     double dy = ref_com[1] - com[1];
                     double dz = ref_com[2] - com[2];
@@ -616,7 +618,7 @@ void relax_spherical_particles(
                     if(disp[0]*dx + disp[1]*dy + disp[2]*dz < 0.0)
                         accept = 0;
                       
-                }
+                }*/
 
                 
             }
