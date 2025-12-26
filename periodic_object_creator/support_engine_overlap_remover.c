@@ -737,9 +737,9 @@ void relax_spherical_particles(
 
         // grid shifting in grid_shifting_rate steps     
         if(iter % grid_shifting_rate == 0){   // every grid_shifting_rate iterations
-            int dx = (rand() % 3) - 1;
-            int dy = (rand() % 3) - 1;
-            int dz = (rand() % 3) - 1;
+            int dx = (rand() % 2) ;
+            int dy = (rand() % 2) ;
+            int dz = (rand() % 2) ;
 
             if(dx || dy || dz){
                 double shift[3] = {
