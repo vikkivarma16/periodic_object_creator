@@ -345,8 +345,8 @@ void relax_spherical_particles(
     }
 
     /* ---- adaptive MC parameters ---- */
-  double step_trans_max = step_trans;
-  double step_rot_max   = step_rot;
+  double step_trans_max = 0.5 ;
+  double step_rot_max   = 0.5;
 
   int trans_trials = 0, trans_accept = 0;
   int rot_trials   = 0, rot_accept   = 0;
@@ -354,7 +354,9 @@ void relax_spherical_particles(
   const int adapt_interval = 100;   // how often to adapt
   const double acc_low  = 0.30;
   const double acc_high = 0.50;
-  const double step_min = 0.01;
+  const double step_min_trans = step_trans;
+  const double step_min_rot = step_rot;
+  
 
     
     
@@ -702,7 +704,7 @@ void relax_spherical_particles(
                     step_trans *= 0.9;
 
                 /* enforce lower bound */
-                step_trans = fmax(step_trans, step_min);
+                step_trans = fmax(step_trans, step_min_trans);
             
 
             
@@ -713,7 +715,7 @@ void relax_spherical_particles(
                     step_rot *= 0.9;
 
                 /* enforce lower bound */
-                step_rot = fmax(step_rot, step_min);
+                step_rot = fmax(step_rot, step_min_rot);
             
 
             /* reset counters */
