@@ -274,32 +274,6 @@ void relax_spherical_particles(
     /* ---- molecule COM and relative coordinates ---- */
     double (*mol_com)[3] = malloc(n_mol * sizeof(*mol_com));
     
-    double (*next_tstep)[3] = malloc(n_mol * sizeof(*next_tstep));
-    
-    
-    for (int i  = 0; i < n_mol; i++)
-    {
-          random_unit(disp);
-          disp[0] *= step_trans;
-          disp[1] *= step_trans;
-          disp[2] *= step_trans;
-    
-          next_tstep[i][0] =  disp[0];
-           next_tstep[i][1] =  disp[1];
-            next_tstep[i][2] =  disp[2];
-          
-    }
-    
-    
-    
-    
-    int *nmol_overl = malloc(n_mol * sizeof(int));
-    
-    for (int i = 0; i < n_mol; i++)
-    {
-          nmol_overl[i] = 100000;
-    }
-    
     
     /* ============================================================
    PREPROCESSING: unwrap molecules, compute COM, store geometry
@@ -364,8 +338,8 @@ void relax_spherical_particles(
     }
 
     /* ---- adaptive MC parameters ---- */
-  double step_trans_max = 0.5 ;
-  double step_rot_max   = 0.5;
+  double step_trans_max = step_trans;
+  double step_rot_max   = step_rot;
 
   int trans_trials = 0, trans_accept = 0;
   int rot_trials   = 0, rot_accept   = 0;
@@ -373,9 +347,7 @@ void relax_spherical_particles(
   const int adapt_interval = 100;   // how often to adapt
   const double acc_low  = 0.30;
   const double acc_high = 0.50;
-  const double step_min_trans = step_trans;
-  const double step_min_rot = step_rot;
-  
+  const double step_min = 0.005;
 
     
     
@@ -441,10 +413,10 @@ void relax_spherical_particles(
                 flag_move = 0;
                 trans_trials++;
 
-                
-                disp[0] =  next_tstep[mol][0];
-                disp[1] =  next_tstep[mol][1];
-                disp[2] =  next_tstep[mol][2];
+                random_unit(disp);
+                disp[0] *= step_trans;
+                disp[1] *= step_trans;
+                disp[2] *= step_trans;
 
                 for(k = 0; k < cnt; k++){
                     i = start + k;
@@ -568,7 +540,7 @@ void relax_spherical_particles(
             
             if(accept ==1 && nov>0){
             
-              if (flag_move==1) {
+                if (flag_move ==1){
             
                     cs[0]/=nov; cs[1]/=nov; cs[2]/=nov;
                     cso[0]/=nov; cso[1]/=nov; cso[2]/=nov;
@@ -582,20 +554,19 @@ void relax_spherical_particles(
                     if(disp[0]*v[0]+disp[1]*v[1]+disp[2]*v[2]<0.0)
                         accept=0;
                 }
-                
                 else {
 
-                    // -------------------------------------------
-                     //  Compute COM of overlapping molecules
-                      // unwrapped w.r.t. moved molecule COM
-                       //------------------------------------------- 
+                    /* -------------------------------------------
+                       Compute COM of overlapping molecules
+                       unwrapped w.r.t. moved molecule COM
+                       ------------------------------------------- */
                     double ref_com[3] = {
                         mol_com[mol][0],
                         mol_com[mol][1],
                         mol_com[mol][2]
                     };
 
-                    // wrap reference COM just to be safe 
+                    /* wrap reference COM just to be safe */
                     //ref_com[0] = fmod(ref_com[0] + box[0], box[0]);
                     //ref_com[1] = fmod(ref_com[1] + box[1], box[1]);
                     //ref_com[2] = fmod(ref_com[2] + box[2], box[2]);
@@ -605,8 +576,8 @@ void relax_spherical_particles(
                     for(j = 0; j < n_over_mol; j++){
                         int m2 = overlapping_mol[j];
 
-                        //unwrap overlapping molecule COM
-                           //relative to reference COM 
+                        /* unwrap overlapping molecule COM
+                           relative to reference COM */
                         double ux = ref_com[0] +
                                     min_image(mol_com[m2][0] - ref_com[0], box[0]);
                         double uy = ref_com[1] +
@@ -623,9 +594,9 @@ void relax_spherical_particles(
                     com[1] /= n_over_mol;
                     com[2] /= n_over_mol;
 
-                    // -------------------------------------------
-                     //  Directional acceptance test
-                      // ------------------------------------------- 
+                    /* -------------------------------------------
+                       Directional acceptance test
+                       ------------------------------------------- */
                     double dx = ref_com[0] - com[0];
                     double dy = ref_com[1] - com[1];
                     double dz = ref_com[2] - com[2];
@@ -645,9 +616,6 @@ void relax_spherical_particles(
                  
             }
             else{
-                
-                nmol_overl[mol] = nov;
-            
                 mol_overlap[mol]=(nov>0);
             
                 if(flag_move == 0) trans_accept++;
@@ -682,6 +650,9 @@ void relax_spherical_particles(
                             exit(0);
                             
                         }
+
+                        
+                        
                         
                         // Add i to new cell
                         if(grid[nw].count < max_particles_per_cell){
@@ -718,7 +689,7 @@ void relax_spherical_particles(
                     step_trans *= 0.9;
 
                 /* enforce lower bound */
-                step_trans = fmax(step_trans, step_min_trans);
+                step_trans = fmax(step_trans, step_min);
             
 
             
@@ -729,7 +700,7 @@ void relax_spherical_particles(
                     step_rot *= 0.9;
 
                 /* enforce lower bound */
-                step_rot = fmax(step_rot, step_min_rot);
+                step_rot = fmax(step_rot, step_min);
             
 
             /* reset counters */
@@ -840,7 +811,7 @@ void relax_spherical_particles(
                   else if(i == pos) printf(">");
                   else printf(" ");
               }
-              printf("] %3.0f%% Overlap-free: %d/%d, iteration no: %d, with grid shifting interval: %d, current translational step %lf", progress*100.0, n_mol - overlap_count, n_mol, iter, grid_shifting_rate, step_trans);
+              printf("] %3.0f%% Overlap-free: %d/%d, iteration no: %d, with grid shifting interval: %d ", progress*100.0, n_mol - overlap_count, n_mol, iter, grid_shifting_rate);
               fflush(stdout);
         }
 
