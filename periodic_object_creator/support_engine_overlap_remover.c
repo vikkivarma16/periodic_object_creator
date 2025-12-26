@@ -743,13 +743,13 @@ void relax_spherical_particles(
 
             if(dx || dy || dz){
                 double shift[3] = {
-                    dx * 0.5 * box[0],
-                    dy * 0.5 * box[1],
-                    dz * 0.5 * box[2]
+                    dx * 0.4 * box[0],
+                    dy * 0.4 * box[1],
+                    dz * 0.4 * box[2]
                 };
 
                 // Shift all particle coordinates and wrap back into box
-                for(i = 0; i < N; i++){
+                for(int i = 0; i < N; i++){
                     coords[3*i]     += shift[0];
                     coords[3*i + 1] += shift[1];
                     coords[3*i + 2] += shift[2];
@@ -766,7 +766,7 @@ void relax_spherical_particles(
                 }
 
                 // Shift all molecule COMs and wrap back
-                for(i = 0; i < n_mol; i++){
+                for(int i = 0; i < n_mol; i++){
                     mol_com[i][0] += shift[0];
                     mol_com[i][1] += shift[1];
                     mol_com[i][2] += shift[2];
@@ -790,7 +790,7 @@ void relax_spherical_particles(
                 }
 
                 // Rebuild grid safely
-                for(i = 0; i < N; i++){
+                for(int i = 0; i < N; i++){
                     int ix = (int)floor(coords[3*i] / cell_size);
                     int iy = (int)floor(coords[3*i + 1] / cell_size);
                     int iz = (int)floor(coords[3*i + 2] / cell_size);
