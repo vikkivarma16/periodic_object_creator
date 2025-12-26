@@ -317,8 +317,8 @@ void relax_spherical_particles(
         for(int k = 0; k < cnt; k++){
             int i = start + k;
             coords[3*i] = fmod(coords[3*i] + box[0], box[0]);
-            coords[3*i+1] = fmod(coords[3*i+1] + box[0], box[0]);
-            coords[3*i+2] = fmod(coords[3*i+2] + box[0], box[0]);
+            coords[3*i+1] = fmod(coords[3*i+1] + box[1], box[1]);
+            coords[3*i+2] = fmod(coords[3*i+2] + box[2], box[2]);
         }
 
       
@@ -454,12 +454,12 @@ void relax_spherical_particles(
                 cmid  = mol_id[i];
                 
 
-                if(coords[3*i]<0.0) coords[3*i]+=box[0];
-                else if (coords[3*i]>=box[0]) coords[3*i]-=box[0];
-                if(coords[3*i+1]<0.0) coords[3*i+1]+=box[1];
-                else if(coords[3*i+1]>=box[1]) coords[3*i+1]-=box[1];
-                if(coords[3*i+2]<0.0) coords[3*i+2]+=box[2];
-                else if(coords[3*i+2]>=box[2]) coords[3*i+2]-=box[2];
+                coords[3*i] = fmod(coords[3*i] + box[0], box[0]);
+                coords[3*i+1] = fmod(coords[3*i+1] + box[1], box[1]);
+                coords[3*i+2] = fmod(coords[3*i+2] + box[2], box[2]);
+
+
+              
 
                 ix=(int)floor(coords[3*i]/cell_size);
                 iy=(int)floor(coords[3*i+1]/cell_size);
@@ -721,37 +721,24 @@ void relax_spherical_particles(
                     coords[3*i + 1] += shift[1];
                     coords[3*i + 2] += shift[2];
 
-                    if(coords[3*i]<0.0) coords[3*i]+=box[0];
-                    else if (coords[3*i]>=box[0]) coords[3*i]-=box[0];
-
-                    if(coords[3*i+1]<0.0) coords[3*i+1]+=box[1];
-                    else if(coords[3*i+1]>=box[1]) coords[3*i+1]-=box[1];
-
-                    if(coords[3*i+2]<0.0) coords[3*i+2]+=box[2];
-                    else if(coords[3*i+2]>=box[2]) coords[3*i+2]-=box[2];
+                    coords[3*i] = fmod(coords[3*i] + box[0], box[0]);
+                    coords[3*i+1] = fmod(coords[3*i+1] + box[1], box[1]);
+                    coords[3*i+2] = fmod(coords[3*i+2] + box[2], box[2]);
 
                     
                 }
 
                
-                for(int i = 0; i < n_mol; i++){
+                for(int mol = 0; mol < n_mol; mol++){
                  
-                  mol_com[i][0] += shift[0];
-                  mol_com[i][1] += shift[1];
-                  mol_com[i][2] += shift[2];
+                      mol_com[mol][0] += shift[0];
+                      mol_com[mol][1] += shift[1];
+                      mol_com[mol][2] += shift[2];
 
-                  if(mol_com[i][0] < 0.0) mol_com[i][0] += box[0];
-                  else if(mol_com[i][0] >= box[0]) mol_com[i][0] -= box[0];
-
-                  if(mol_com[i][1] < 0.0) mol_com[i][1] += box[1];
-                  else if(mol_com[i][1] >= box[1]) mol_com[i][1] -= box[1];
-
-                  if(mol_com[i][2] < 0.0) mol_com[i][2] += box[2];
-                  else if(mol_com[i][2] >= box[2]) mol_com[i][2] -= box[2];
-
-                  // Check if COM actually changed
-                 
-              }
+                      mol_com[mol][0] = fmod(mol_com[mol][0] + box[0], box[0]);
+                      mol_com[mol][1] = fmod(mol_com[mol][1] + box[1], box[1]);
+                      mol_com[mol][2] = fmod(mol_com[mol][2] + box[2], box[2]);
+                }
 
 
                 // ---------- Clear all cells ----------
