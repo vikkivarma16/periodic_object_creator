@@ -836,10 +836,10 @@ void relax_spherical_particles(
 
                
                 
-                for(int i = 0; i < N; i++){
-                      int ix = (int)floor(coords[3*i] / cell_size);
-                      int iy = (int)floor(coords[3*i + 1] / cell_size);
-                      int iz = (int)floor(coords[3*i + 2] / cell_size);
+                for(int it = 0; it < N; it++){
+                      int ix = (int)floor(coords[3*it] / cell_size);
+                      int iy = (int)floor(coords[3*it + 1] / cell_size);
+                      int iz = (int)floor(coords[3*it + 2] / cell_size);
 
                       if(ix < 0) ix = 0; else if(ix >= nx) ix = nx-1;
                       if(iy < 0) iy = 0; else if(iy >= ny) iy = ny-1;
@@ -848,14 +848,14 @@ void relax_spherical_particles(
                       int h = cell_hash(ix, iy, iz, nx, ny, nz);
 
                       // Check if particle's cell changed
-                      if(p_cell[i] != h){
-                          printf("Particle %d moved from cell %d to %d\n", i, p_cell[i], h);
+                      if(p_cell[it] != h){
+                          printf("Particle %d moved from cell %d to %d\n", i, p_cell[it], h);
                       }
 
-                      p_cell[i] = h;
+                      p_cell[it] = h;
 
                       if(grid[h].count < grid[h].max_count){
-                          grid[h].idx[grid[h].count++] = i;
+                          grid[h].idx[grid[h].count++] = it;
                       } else {
                           printf("Warning: Overflow during rebuild at cell %d\n", h);
                       }
