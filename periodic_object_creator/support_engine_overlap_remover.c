@@ -354,7 +354,7 @@ void relax_spherical_particles(
   const int adapt_interval = 100;   // how often to adapt
   const double acc_low  = 0.30;
   const double acc_high = 0.50;
-  const double step_min = 0.005;
+  const double step_min = 0.01;
 
     
     
@@ -824,7 +824,7 @@ void relax_spherical_particles(
                   else if(i == pos) printf(">");
                   else printf(" ");
               }
-              printf("] %3.0f%% Overlap-free: %d/%d, iteration no: %d, with grid shifting interval: %d ", progress*100.0, n_mol - overlap_count, n_mol, iter, grid_shifting_rate);
+              printf("] %3.0f%% Overlap-free: %d/%d, iteration no: %d, with grid shifting interval: %d current translational step %lf", progress*100.0, n_mol - overlap_count, n_mol, iter, grid_shifting_rate, step_trans);
               fflush(stdout);
         }
 
