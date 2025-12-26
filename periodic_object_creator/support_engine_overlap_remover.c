@@ -807,6 +807,12 @@ void relax_spherical_particles(
                         printf("Warning: Overflow during rebuild at cell %d\n", h);
                     }
                 }
+                
+                for(i = 0; i < n_mol; i++){
+                    mol_overlap[i] = 1; // or recompute based on current positions
+                }
+
+                
             }
         }
 
