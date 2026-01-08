@@ -1,1 +1,1 @@
-recursive-include periodic_object_creator *.so
+include cdft_solver/calculators/radial_distribution_function/liboz_radial.so
