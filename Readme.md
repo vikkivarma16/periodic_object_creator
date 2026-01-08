@@ -213,6 +213,8 @@ Automatically generates molecular topology with optional multi-body support:
 * Generates **improper dihedrals** (≥3 neighbors) within same body
 * Returns data structures as Python arrays for further processing
 
+## Caution: please check the max particle allocation in a cell in case of segmentation fault.
+
 **Usage Example**:
 
 ```python
@@ -404,6 +406,8 @@ Removes overlapping atoms between two objects within a distance tolerance.
 * `delete_from`: `'obj1'` or `'obj2'` (specifies which object to remove overlaps from)
 * `tolerance`: maximum distance to consider atoms overlapping
 
+Caution : tolerance must be chosen carefully otherwise system can get crash.. as tolerance define the system size and therefore the cell size and number of grid. Too high number of grids can lead to segmentation fault due to high memory allocation. E.g, tolerence < 0.1 can lead to crash.
+
 **Behavior**:
 
 * Detects overlapping atoms using Euclidean distance
@@ -417,6 +421,99 @@ clean_obj1, clean_obj2 = overlap_eliminator(obj1, obj2, delete_from='obj1', tole
 ```
 
 ---
+
+
+
+### randomize_positions(input_object, idx, box, xyz_indices=(0, 1, 2), seed=None, translation=True, rotation=False, periodic=True, max_trials=10000 )
+
+## `randomize_positions` — Rigid-Body Molecular Randomization
+
+### Overview
+
+`randomize_positions` is a Python utility to randomly position and orient molecules in a simulation box. It supports both **periodic boundary conditions (PBC)** and non-periodic placement. This is useful for preparing initial configurations for molecular dynamics or Monte Carlo simulations.
+
+---
+
+### Features
+
+* **Rigid-body handling:** Groups atoms by molecule ID and maintains internal geometry during randomization.
+* **Periodic wrapping:** When `periodic=True`, molecules that move outside the box are wrapped back using minimum-image conventions.
+* **Non-periodic placement:** When `periodic=False`, molecules are repeatedly translated and rotated until all atoms are strictly inside the box.
+* **Translation & rotation options:** Apply only translation, only rotation, or both.
+* **Seed control:** Reproducible random placements with a user-defined seed.
+
+---
+
+### Parameters
+
+| Parameter      | Type    | Default   | Description                                            |
+| -------------- | ------- | --------- | ------------------------------------------------------ |
+| `input_object` | `list`  | —         | List of atom/molecule records (coordinates and IDs).   |
+| `idx`          | `int`   | —         | Index of molecule ID in each record.                   |
+| `box`          | `tuple` | —         | Simulation box dimensions `(Lx, Ly, Lz)`.              |
+| `xyz_indices`  | `tuple` | `(0,1,2)` | Indices of x, y, z coordinates in each record.         |
+| `seed`         | `int`   | `None`    | Random seed for reproducibility.                       |
+| `translation`  | `bool`  | `True`    | Enable random translation of molecules.                |
+| `rotation`     | `bool`  | `False`   | Enable random rotation of molecules.                   |
+| `periodic`     | `bool`  | `True`    | Apply periodic boundary conditions.                    |
+| `max_trials`   | `int`   | `10000`   | Maximum placement attempts for non-periodic molecules. |
+
+---
+
+### Returns
+
+* `output_object` (`list`): Copy of `input_object` with updated coordinates. Molecules are repositioned and optionally rotated according to user settings.
+
+---
+
+### Usage Examples
+
+#### Periodic Placement (PBC)
+
+```python
+new_coords = randomize_positions(
+    input_object=molecules,
+    idx=0,
+    box=(50.0, 50.0, 50.0),
+    translation=True,
+    rotation=True,
+    periodic=True,
+    seed=42
+)
+```
+
+#### Non-Periodic Placement (all atoms strictly inside box)
+
+```python
+new_coords = randomize_positions(
+    input_object=molecules,
+    idx=0,
+    box=(50.0, 50.0, 50.0),
+    translation=True,
+    rotation=True,
+    periodic=False,
+    max_trials=5000
+)
+```
+
+---
+
+### Notes
+
+* For **non-periodic placement**, `max_trials` limits the number of random attempts per molecule. If a molecule cannot fit inside the box after `max_trials`, a `RuntimeError` is raised.
+* For **periodic placement**, molecules are always wrapped into the simulation box, and rotations/translation may result in overlapping molecules — you may need a separate overlap removal step.
+* Internal geometry of each molecule is preserved during translation and rotation.
+
+---
+
+
+
+
+
+
+
+
+
 
 #### `particle_vis(input_object, filename)`
 
@@ -545,6 +642,67 @@ translated_obj = translator(input_object, [1.0, 0.0, 0.0])
 
 ---
 
+
+Sure! Here's a clear README section for your `periodic_wrapper` function:
+
+---
+
+
+### periodic_wrapper(objects, box)
+## `periodic_wrapper` — Wrap Particles into the Simulation Box
+
+### Overview
+
+`periodic_wrapper` is a Python utility that **wraps all particle coordinates back into the primary simulation box** using periodic boundary conditions (PBC). It is commonly used in molecular dynamics workflows to ensure that all atoms or beads remain inside the simulation box after dynamics or manipulations.
+
+Unlike rigid-body randomization, this function operates **on individual particles** and does not change their relative positions or orientations.
+
+---
+
+### Parameters
+
+| Parameter | Type              | Description                                                                                                    |
+| --------- | ----------------- | -------------------------------------------------------------------------------------------------------------- |
+| `objects` | `list`            | List of particle records. Each record is a list/tuple where the first three entries are `x, y, z` coordinates. |
+| `box`     | `list` or `tuple` | Simulation box dimensions `[Lx, Ly, Lz]`.                                                                      |
+
+---
+
+### Returns
+
+* `wrapped` (`list`): Deep copy of `objects` with all particle coordinates wrapped back into the simulation box `[0, Lx)`, `[0, Ly)`, `[0, Lz)`.
+
+---
+
+### Usage Example
+
+```python
+particles = [
+    [105.2, -2.3, 50.7, ...... ],
+    [25.0, 120.1, -10.5, ......], ...
+]
+
+box = [100.0, 100.0, 100.0]
+
+wrapped_particles = periodic_wrapper(particles, box)
+
+print(wrapped_particles)
+# Output: [[5.2, 97.7, 50.7], [25.0, 20.1, 89.5]]
+```
+
+---
+
+### Notes
+
+* This function **preserves the internal structure of molecules** if applied individually to atoms of a molecule. For rigid molecules, consider using `randomize_positions` or other rigid-body PBC handling routines.
+* Coordinates are wrapped using **floor division**, which ensures that the result is always within `[0, Lx)`, `[0, Ly)`, `[0, Lz)`.
+* This is a **non-destructive operation**; the original `objects` list remains unchanged due to deep copy.
+
+---
+
+
+
+
 #### `wrapper_cylindrical(input_object, cylinder_radius, object_size)`
 
 Wraps a sheet-like object around a cylinder along the z-axis.
@@ -609,6 +767,8 @@ from periodic_object_creator.so_wrapper_cylindrical_mod import wrapper_cylindric
 from periodic_object_creator.so_wrapper_spherical_mod import wrapper_spherical
 from periodic_object_creator.vtk_particle_mod import particle_vis
 from periodic_object_creator.so_unwrapper_mod import periodic_unwrapper
+from periodic_object_creator.so_random_translator_mod import randomize_positions
+from periodic_object_creator.so_wrapper_mod periodic_wrapper
 ```
 
 **Usage Examples**:
