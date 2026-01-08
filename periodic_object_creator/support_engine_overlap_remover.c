@@ -745,7 +745,7 @@ void relax_spherical_particles(
 
 
         // grid shifting in grid_shifting_rate steps     
-        if(iter % grid_shifting_rate == 0){   // every grid_shifting_rate iterations
+        if(iter % grid_shifting_rate == 0 && iter > 0 ){   // every grid_shifting_rate iterations
             // Choose one random direction: 0 = x, 1 = y, 2 = z
             int dir = rand() % 3;
             int dx = 0, dy = 0, dz = 0;
