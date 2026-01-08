@@ -15,7 +15,7 @@ git commit -m "update_data_$(date '+%Y-%m-%d_%H-%M-%S')" || echo "No changes to 
 
 
 echo "🚀 Pushing to remote..."
-git push -u origin main
+git push origin master
 
 # --- Activate Python environment ---
 ENV_PATH=~/myenv
