@@ -123,8 +123,7 @@ void relax_spherical_particles(
 
     /* ---------------- overlap flags ---------------- */
     int *mol_overlap = calloc(n_mol,sizeof(int));
-    for(int m=0;m<n_mol;m++) mol_overlap[m] = 1;
-
+    for(int m=0;m<n_mol;m++) { if (mol_movable[m]==1 ) {mol_overlap[m] = 1; } else {mol_overlap[m] = 0;}}
     /* ---------------- grid ---------------- */
     int nx = (int)floor(box[0]/cell_size);
     int ny = (int)floor(box[1]/cell_size);
@@ -498,34 +497,68 @@ void relax_spherical_particles(
                         //printf ("%d,   %lf   %lf   %lf  %d  %d \n\n", p, dx, dy, dz, mol_id_c[p], N);
                         
                         if(dx*dx+dy*dy+dz*dz<cut2){
-                           if (mol_overlap[mol] ==0 || mol_overlap[mol_id_c[p]]==0 ){
-                                  accept =0;
-                                  break;
-                           }
-                           else {
-                                  
-                                  cs[0] += ref[0] + min_image(coords[3*i] - ref[0], box[0]);    
-                                  cs[1] += ref[1] + min_image(coords[3*i + 1] - ref[1], box[1]); 
-                                  cs[2] += ref[2] + min_image(coords[3*i + 2] - ref[2], box[2]);;
-                                  
-                                  cso[0]+= ref[0] + min_image(bak[3*k] - ref[0], box[0]);   
-                                  cso[1]+= ref[1] + min_image(bak[3*k + 1] - ref[1], box[1]); 
-                                  cso[2]+= ref[2] + min_image(bak[3*k + 2] - ref[2], box[2]);
-                                  
-                                  co[0] += ref[0] + min_image(coords[3*p] - ref[0], box[0]);    
-                                  co[1] += ref[1] + min_image(coords[3*p + 1] - ref[1], box[1]); 
-                                  co[2] += ref[2] + min_image(coords[3*p + 2] - ref[2], box[2]);;
-                                  
-                                  nov++;
-                                  
-                                  int found  = 0;
-                                  for (int idx  = 0 ; idx <n_over_mol; idx++){
-                                      if (overlapping_mol[idx] == mol_id_c[p]) { found = 1; break;}
-                                  }
-                                  if (found==0){  overlapping_mol[n_over_mol] =  mol_id_c[p]; n_over_mol++;}
-                                  
-                                  
-                           }
+          
+                            if(mol_movable[mol_id_c[p]]==1) {
+                                 if (mol_overlap[mol] ==0 || mol_overlap[mol_id_c[p]]==0 ){
+                                        accept =0;
+                                        break;
+                                 }
+                                 else {
+                                        
+                                        cs[0] += ref[0] + min_image(coords[3*i] - ref[0], box[0]);    
+                                        cs[1] += ref[1] + min_image(coords[3*i + 1] - ref[1], box[1]); 
+                                        cs[2] += ref[2] + min_image(coords[3*i + 2] - ref[2], box[2]);;
+                                        
+                                        cso[0]+= ref[0] + min_image(bak[3*k] - ref[0], box[0]);   
+                                        cso[1]+= ref[1] + min_image(bak[3*k + 1] - ref[1], box[1]); 
+                                        cso[2]+= ref[2] + min_image(bak[3*k + 2] - ref[2], box[2]);
+                                        
+                                        co[0] += ref[0] + min_image(coords[3*p] - ref[0], box[0]);    
+                                        co[1] += ref[1] + min_image(coords[3*p + 1] - ref[1], box[1]); 
+                                        co[2] += ref[2] + min_image(coords[3*p + 2] - ref[2], box[2]);;
+                                        
+                                        nov++;
+                                        
+                                        int found  = 0;
+                                        for (int idx  = 0 ; idx <n_over_mol; idx++){
+                                            if (overlapping_mol[idx] == mol_id_c[p]) { found = 1; break;}
+                                        }
+                                        if (found==0){  overlapping_mol[n_over_mol] =  mol_id_c[p]; n_over_mol++;}
+                                        
+                                        
+                                 }
+                            }
+                            else {
+                            
+                                  if (mol_overlap[mol] ==0 ){
+                                          accept =0;
+                                          break;
+                                   }
+                                   else {
+                                          
+                                          cs[0] += ref[0] + min_image(coords[3*i] - ref[0], box[0]);    
+                                          cs[1] += ref[1] + min_image(coords[3*i + 1] - ref[1], box[1]); 
+                                          cs[2] += ref[2] + min_image(coords[3*i + 2] - ref[2], box[2]);;
+                                          
+                                          cso[0]+= ref[0] + min_image(bak[3*k] - ref[0], box[0]);   
+                                          cso[1]+= ref[1] + min_image(bak[3*k + 1] - ref[1], box[1]); 
+                                          cso[2]+= ref[2] + min_image(bak[3*k + 2] - ref[2], box[2]);
+                                          
+                                          co[0] += ref[0] + min_image(coords[3*p] - ref[0], box[0]);    
+                                          co[1] += ref[1] + min_image(coords[3*p + 1] - ref[1], box[1]); 
+                                          co[2] += ref[2] + min_image(coords[3*p + 2] - ref[2], box[2]);;
+                                          
+                                          nov++;
+                                          
+                                          int found  = 0;
+                                          for (int idx  = 0 ; idx <n_over_mol; idx++){
+                                              if (overlapping_mol[idx] == mol_id_c[p]) { found = 1; break;}
+                                          }
+                                          if (found==0){  overlapping_mol[n_over_mol] =  mol_id_c[p]; n_over_mol++;}
+                                          
+                                          
+                                   }
+                            }
                         }
                     }
                     
@@ -791,7 +824,7 @@ void relax_spherical_particles(
 
                
 
-                for(int m=0;m<n_mol;m++) mol_overlap[m] = 1;
+                for(int m=0;m<n_mol;m++) { if (mol_movable[m]==1 ) {mol_overlap[m] = 1; } else {mol_overlap[m] = 0;}}
             
             }
             
