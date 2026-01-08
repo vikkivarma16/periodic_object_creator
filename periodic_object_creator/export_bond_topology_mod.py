@@ -68,7 +68,7 @@ def find_bonds(input_object, bond_length, tolerance, many_body=False,
             body[aid] = 1
 
     # Prepare neighbor arrays for C-grid
-    max_neighbors = 16  # adjust if needed
+    max_neighbors = 64  # adjust if needed
     neighbor_array = (POINTER(c_int) * N)()
     neighbor_count = (c_int * N)()
     temp_buffers = []
