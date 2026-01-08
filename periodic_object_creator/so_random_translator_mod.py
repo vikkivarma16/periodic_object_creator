@@ -10,32 +10,31 @@ def randomize_positions(
     xyz_indices=(0, 1, 2),
     seed=None,
     translation=True,
-    rotation=False
+    rotation=False,
+    periodic=True,
+    max_trials=10000
 ):
     """
-    Rigid-body randomization of molecules under PBC.
+    Rigid-body randomization of molecules.
+
+    If periodic=True:
+        Molecules are wrapped back into the box (PBC).
+
+    If periodic=False:
+        Molecules are repeatedly translated/rotated until
+        all atoms lie strictly inside the box.
 
     Parameters
     ----------
-    input_object : list
-        List of element records (lists or tuples).
-    idx : int
-        Index in each record that defines the rigid object ID (e.g. mol_id).
-    box : tuple/list of 3 floats
-        Simulation box size (Lx, Ly, Lz).
-    xyz_indices : tuple of int, optional
-        Indices of x, y, z coordinates inside each record.
-    seed : int, optional
-        Random seed.
-    translation : bool
-        Whether to apply random translation.
-    rotation : bool
-        Whether to apply random rotation after translation.
+    periodic : bool
+        Enable/disable periodic boundary conditions.
+    max_trials : int
+        Maximum attempts for non-periodic placement.
 
     Returns
     -------
     output_object : list
-        Same object structure, coordinates updated with PBC.
+        Same structure, coordinates updated.
     """
     if seed is not None:
         random.seed(seed)
@@ -49,14 +48,14 @@ def randomize_positions(
     for i, rec in enumerate(output_object):
         groups[rec[idx]].append(i)
 
-    # Helper: random unit vector
+    # ---------- helpers ----------
+
     def random_unit_vector():
         z = 2.0 * random.random() - 1.0
         t = 2.0 * math.pi * random.random()
         r = math.sqrt(1.0 - z * z)
         return [r * math.cos(t), r * math.sin(t), z]
 
-    # Helper: Rodrigues' rotation formula
     def rotate(v, axis, angle):
         c = math.cos(angle)
         s = math.sin(angle)
@@ -66,26 +65,37 @@ def randomize_positions(
             axis[2] * v[0] - axis[0] * v[2],
             axis[0] * v[1] - axis[1] * v[0],
         ]
-        return [v[i] * c + cross[i] * s + axis[i] * dot * (1.0 - c) for i in range(3)]
+        return [
+            v[i] * c + cross[i] * s + axis[i] * dot * (1.0 - c)
+            for i in range(3)
+        ]
 
-    # Helper: PBC wrapping
-    def wrap(coord, box_length):
-        return coord % box_length
+    def wrap(x, L):
+        return x % L
 
-    # Helper: minimum image
-    def min_image(dx, box_length):
-        if dx > 0.5 * box_length:
-            dx -= box_length
-        elif dx < -0.5 * box_length:
-            dx += box_length
+    def min_image(dx, L):
+        if dx > 0.5 * L:
+            dx -= L
+        elif dx < -0.5 * L:
+            dx += L
         return dx
 
-    # Process each molecule
+    def inside_box(pos):
+        return (
+            0.0 <= pos[0] <= Lx and
+            0.0 <= pos[1] <= Ly and
+            0.0 <= pos[2] <= Lz
+        )
+
+    # ---------- process each molecule ----------
+
     for indices in groups.values():
-        # ---------- unwrap molecule relative to first atom ----------
+
+        # unwrap relative to first atom
         ref = output_object[indices[0]]
         ref_pos = [ref[xi], ref[yi], ref[zi]]
         unwrapped = []
+
         for i in indices:
             rec = output_object[i]
             x = ref_pos[0] + min_image(rec[xi] - ref_pos[0], Lx)
@@ -93,41 +103,63 @@ def randomize_positions(
             z = ref_pos[2] + min_image(rec[zi] - ref_pos[2], Lz)
             unwrapped.append([x, y, z])
 
-        # ---------- compute COM ----------
+        # center of mass
         n = len(unwrapped)
-        com = [sum(u[i] for u in unwrapped) / n for i in range(3)]
+        com = [sum(p[i] for p in unwrapped) / n for i in range(3)]
 
-        # ---------- random translation ----------
-        if translation:
-            new_com = [random.random() * Lx, random.random() * Ly, random.random() * Lz]
+        # ---------- placement ----------
+        placed = False
+        trials = 0
+
+        while not placed:
+            trials += 1
+            if not periodic and trials > max_trials:
+                raise RuntimeError("Failed to place molecule inside box")
+
+            # random translation
+            if translation:
+                new_com = [
+                    random.random() * Lx,
+                    random.random() * Ly,
+                    random.random() * Lz,
+                ]
+            else:
+                new_com = com[:]
+
             disp = [new_com[i] - com[i] for i in range(3)]
-        else:
-            disp = [0.0, 0.0, 0.0]
-            new_com = com
 
-        # ---------- apply translation ----------
-        for i, pos in zip(indices, unwrapped):
-            rec = output_object[i]
-            x = pos[0] + disp[0]
-            y = pos[1] + disp[1]
-            z = pos[2] + disp[2]
-            rec[xi] = wrap(x, Lx)
-            rec[yi] = wrap(y, Ly)
-            rec[zi] = wrap(z, Lz)
+            # random rotation
+            if rotation:
+                axis = random_unit_vector()
+                angle = (2.0 * random.random() - 1.0) * math.pi
+            else:
+                axis = None
+                angle = 0.0
 
-        # ---------- random rotation ----------
-        if rotation:
-            axis = random_unit_vector()
-            angle = (2.0 * random.random() - 1.0) * math.pi
-            for i, pos in zip(indices, unwrapped):
-                rec = output_object[i]
-                # translate to COM
-                v = [pos[j] + disp[j] - new_com[j] for j in range(3)]
-                vr = rotate(v, axis, angle)
-                # translate back and wrap
-                rec[xi] = wrap(new_com[0] + vr[0], Lx)
-                rec[yi] = wrap(new_com[1] + vr[1], Ly)
-                rec[zi] = wrap(new_com[2] + vr[2], Lz)
+            trial_positions = []
+
+            for pos in unwrapped:
+                v = [pos[i] + disp[i] - new_com[i] for i in range(3)]
+                if rotation:
+                    v = rotate(v, axis, angle)
+                p = [new_com[i] + v[i] for i in range(3)]
+                trial_positions.append(p)
+
+            # check validity
+            if periodic:
+                placed = True
+            else:
+                placed = all(inside_box(p) for p in trial_positions)
+
+        # ---------- commit positions ----------
+        for idx_i, p in zip(indices, trial_positions):
+            rec = output_object[idx_i]
+            if periodic:
+                rec[xi] = wrap(p[0], Lx)
+                rec[yi] = wrap(p[1], Ly)
+                rec[zi] = wrap(p[2], Lz)
+            else:
+                rec[xi], rec[yi], rec[zi] = p
 
     return output_object
 
