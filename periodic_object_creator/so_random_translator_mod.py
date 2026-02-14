@@ -3,6 +3,7 @@ import math
 from collections import defaultdict
 from copy import deepcopy
 
+
 def randomize_positions(
     input_object,
     idx,
@@ -12,30 +13,19 @@ def randomize_positions(
     translation=True,
     rotation=False,
     periodic=True,
-    max_trials=10000
+    max_trials=10000,
+    eps=1.0e-8
 ):
     """
     Rigid-body randomization of molecules.
 
-    If periodic=True:
-        Molecules are wrapped back into the box (PBC).
-
-    If periodic=False:
-        Molecules are repeatedly translated/rotated until
-        all atoms lie strictly inside the box.
-
     Parameters
     ----------
     periodic : bool
-        Enable/disable periodic boundary conditions.
-    max_trials : int
-        Maximum attempts for non-periodic placement.
-
-    Returns
-    -------
-    output_object : list
-        Same structure, coordinates updated.
+        True  -> periodic boundary conditions
+        False -> closed box (no atom may leave)
     """
+
     if seed is not None:
         random.seed(seed)
 
@@ -43,13 +33,16 @@ def randomize_positions(
     xi, yi, zi = xyz_indices
     output_object = deepcopy(input_object)
 
+    # -------------------------------
     # Group atoms by molecule
+    # -------------------------------
     groups = defaultdict(list)
     for i, rec in enumerate(output_object):
         groups[rec[idx]].append(i)
 
-    # ---------- helpers ----------
-
+    # -------------------------------
+    # Helper functions
+    # -------------------------------
     def random_unit_vector():
         z = 2.0 * random.random() - 1.0
         t = 2.0 * math.pi * random.random()
@@ -82,53 +75,73 @@ def randomize_positions(
 
     def inside_box(pos):
         return (
-            0.0 <= pos[0] <= Lx and
-            0.0 <= pos[1] <= Ly and
-            0.0 <= pos[2] <= Lz
+            eps < pos[0] < Lx - eps and
+            eps < pos[1] < Ly - eps and
+            eps < pos[2] < Lz - eps
         )
 
-    # ---------- process each molecule ----------
-
+    # -------------------------------
+    # Process each molecule
+    # -------------------------------
     for indices in groups.values():
 
-        # unwrap relative to first atom
+        # --- build molecule geometry ---
         ref = output_object[indices[0]]
         ref_pos = [ref[xi], ref[yi], ref[zi]]
         unwrapped = []
 
         for i in indices:
             rec = output_object[i]
-            x = ref_pos[0] + min_image(rec[xi] - ref_pos[0], Lx)
-            y = ref_pos[1] + min_image(rec[yi] - ref_pos[1], Ly)
-            z = ref_pos[2] + min_image(rec[zi] - ref_pos[2], Lz)
+            if periodic:
+                x = ref_pos[0] + min_image(rec[xi] - ref_pos[0], Lx)
+                y = ref_pos[1] + min_image(rec[yi] - ref_pos[1], Ly)
+                z = ref_pos[2] + min_image(rec[zi] - ref_pos[2], Lz)
+            else:
+                x, y, z = rec[xi], rec[yi], rec[zi]
+
             unwrapped.append([x, y, z])
 
-        # center of mass
+        # --- center of mass ---
         n = len(unwrapped)
         com = [sum(p[i] for p in unwrapped) / n for i in range(3)]
 
-        # ---------- placement ----------
+        # --- molecule extent (for closed box) ---
+        max_extent = max(
+            math.sqrt(sum((p[i] - com[i]) ** 2 for i in range(3)))
+            for p in unwrapped
+        )
+
+        # -------------------------------
+        # Random placement
+        # -------------------------------
         placed = False
         trials = 0
 
         while not placed:
             trials += 1
             if not periodic and trials > max_trials:
-                raise RuntimeError("Failed to place molecule inside box")
+                raise RuntimeError("Failed to place molecule inside closed box")
 
-            # random translation
+            # --- translation ---
             if translation:
-                new_com = [
-                    random.random() * Lx,
-                    random.random() * Ly,
-                    random.random() * Lz,
-                ]
+                if periodic:
+                    new_com = [
+                        random.random() * Lx,
+                        random.random() * Ly,
+                        random.random() * Lz,
+                    ]
+                else:
+                    new_com = [
+                        random.uniform(max_extent, Lx - max_extent),
+                        random.uniform(max_extent, Ly - max_extent),
+                        random.uniform(max_extent, Lz - max_extent),
+                    ]
             else:
                 new_com = com[:]
 
             disp = [new_com[i] - com[i] for i in range(3)]
 
-            # random rotation
+            # --- rotation ---
             if rotation:
                 axis = random_unit_vector()
                 angle = (2.0 * random.random() - 1.0) * math.pi
@@ -145,13 +158,15 @@ def randomize_positions(
                 p = [new_com[i] + v[i] for i in range(3)]
                 trial_positions.append(p)
 
-            # check validity
+            # --- validity check ---
             if periodic:
                 placed = True
             else:
                 placed = all(inside_box(p) for p in trial_positions)
 
-        # ---------- commit positions ----------
+        # -------------------------------
+        # Commit positions
+        # -------------------------------
         for idx_i, p in zip(indices, trial_positions):
             rec = output_object[idx_i]
             if periodic:
