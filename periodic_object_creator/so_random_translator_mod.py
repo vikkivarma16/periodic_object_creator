@@ -105,11 +105,10 @@ def randomize_positions(
         n = len(unwrapped)
         com = [sum(p[i] for p in unwrapped) / n for i in range(3)]
 
-        # --- molecule extent (for closed box) ---
-        max_extent = max(
-            math.sqrt(sum((p[i] - com[i]) ** 2 for i in range(3)))
-            for p in unwrapped
-        )
+        # --- axis-wise molecule extent ---
+        dx_max = max(abs(p[0] - com[0]) for p in unwrapped)
+        dy_max = max(abs(p[1] - com[1]) for p in unwrapped)
+        dz_max = max(abs(p[2] - com[2]) for p in unwrapped)
 
         # -------------------------------
         # Random placement
@@ -132,9 +131,9 @@ def randomize_positions(
                     ]
                 else:
                     new_com = [
-                        random.uniform(max_extent, Lx - max_extent),
-                        random.uniform(max_extent, Ly - max_extent),
-                        random.uniform(max_extent, Lz - max_extent),
+                        random.uniform(dx_max, Lx - dx_max),
+                        random.uniform(dy_max, Ly - dy_max),
+                        random.uniform(dz_max, Lz - dz_max),
                     ]
             else:
                 new_com = com[:]
@@ -177,4 +176,3 @@ def randomize_positions(
                 rec[xi], rec[yi], rec[zi] = p
 
     return output_object
-
