@@ -407,7 +407,7 @@ void relax_spherical_particles(
             
             
             
-            if(drand48()<0.5){
+            if(drand48()<1.0){
                 /* ---------- TRANSLATION MOVE ---------- */
                 flag_move = 0;
                 trans_trials++;
