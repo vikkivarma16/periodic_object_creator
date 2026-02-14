@@ -13,6 +13,8 @@
 
 /* ============================================================
    Utilities
+   
+   gcc -O2 -Wall -std=c11 -fPIC -shared -D_XOPEN_SOURCE=500 support_engine_overlap_remover.c -o support_engine_overlap_remover.so -lm
    ============================================================ */
 
 
@@ -407,7 +409,7 @@ void relax_spherical_particles(
             
             
             
-            if(drand48()<1.0){
+            if(drand48()<0.5){
                 /* ---------- TRANSLATION MOVE ---------- */
                 flag_move = 0;
                 trans_trials++;

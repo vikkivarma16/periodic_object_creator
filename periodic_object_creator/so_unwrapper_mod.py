@@ -53,13 +53,13 @@ def periodic_unwrapper(objects, box, mol_id_index):
         for idx in indices[1:]:
             x, y, z = objects[idx][:3]
 
-            dx = min_image(x - ref[0], box[0])
-            dy = min_image(y - ref[1], box[1])
-            dz = min_image(z - ref[2], box[2])
+            dxx = min_image(x - ref[0], box[0])
+            dyy = min_image(y - ref[1], box[1])
+            dzz = min_image(z - ref[2], box[2])
 
-            unwrapped[idx][0] = ref[0] + dx
-            unwrapped[idx][1] = ref[1] + dy
-            unwrapped[idx][2] = ref[2] + dz
+            unwrapped[idx][0] = ref[0] + dxx
+            unwrapped[idx][1] = ref[1] + dyy
+            unwrapped[idx][2] = ref[2] + dzz
 
     return unwrapped
 
